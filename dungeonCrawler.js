@@ -1,8 +1,6 @@
 // JavaScript Document
 /*jshint esversion: 6 */
 
-//area to create store from redux
-
 
 const returnTrue = () => true;
 const not = _.negate;
@@ -136,26 +134,7 @@ const powerupTypes = [
  const CAM_COLS   = 800 / PX_PER_COL;
  const CAM_ROWS   = 600 / PX_PER_ROW;
 
-//inicial state 
-const initialState = Immutable.fromJS({
-  editor: {
-    activeEntity: null,
-    activeGround: null,
-  },
-  router: null,
-  // level: null,
-  numTapes: 0,
-  deaths: 0,
-  time: 5 * 60,
-  powerups: [],
-  health: 4,
-  hasWon: false,
-  player: {
-    // row: null,
-    // col: null,
-    direction: 'left'
-  }
-});
+
 //arrays with the maps for ground and entities 
 const GROUNDS = [
   "GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH",
@@ -334,6 +313,8 @@ const groundToType = Object.freeze({
 });
 
 
+//*********************************************************************
+// definitions for using react-bootstrap and FontAwesome... 
 const {
 
   Modal,
@@ -443,6 +424,28 @@ FontAwesome.propTypes = {
     spin: React.PropTypes.bool,
     stack: React.PropTypes.oneOf([ '1x', '2x' ]),
   }
+
+//*********************************************************************
+//inicial state 
+/*const initialState = Immutable.fromJS({
+  editor: {
+    activeEntity: null,
+    activeGround: null,
+  },
+  router: null,
+  // level: null,
+  numTapes: 0,
+  deaths: 0,
+  time: 5 * 60,
+  powerups: [],
+  health: 4,
+  hasWon: false,
+  player: {
+    // row: null,
+    // col: null,
+    direction: 'left'
+  }
+});*/
 
 class Tiles extends React.Component{
  
@@ -667,6 +670,8 @@ class World extends React.Component {
 			
 				
 				} ;
+		 
+		 	//const style = gridCoordsToOffsetStyle(row, col);
 		 	console.log(style);
 			const className = 'world !hasEmoji';
 			return (
