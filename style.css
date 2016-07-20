@@ -1,0 +1,483 @@
+@charset "UTF-8";
+html, body,
+h1, h2, h3, h4, h5, h6,
+p, ol, ul, dl, dt, dd, li {
+  margin: 0;
+  padding: 0;
+  list-style: none; }
+
+*, *::before, *::after {
+  box-sizing: border-box; }
+
+#mountNode div #Header {
+  text-align: center; }
+  #mountNode div #Header label {
+    font-size: 15px;
+    text-align: right; }
+#mountNode div div#GameBoard {
+  min-height: 600px;
+  background-color: darkgreen; }
+#mountNode div #Footer {
+  text-align: center; }
+  #mountNode div #Footer label {
+    font-size: 15px;
+    text-align: center; }
+
+.ground--grass {
+  background-color: #76b55e; }
+.ground--path {
+  background-color: #d2a354; }
+.ground--water {
+  background-color: #68a4b7; }
+.ground--sand {
+  background-color: #efdfa7; }
+.ground--forest {
+  background-color: #536a3e; }
+.ground--sky {
+  background-color: #b8ecfe; }
+.ground--doorway {
+  background-color: #fef9b8; }
+.ground--snow {
+  background-color: #fffeed; }
+.ground--sidewalk {
+  background-color: #d8d8d8;
+  border: 1px solid #c6c6c6;
+  border-left-color: #e1e1e1; }
+.ground--road {
+  background-color: #565656; }
+.ground--roadline {
+  background-color: #565656;
+  border-top: 3px dashed #eed800; }
+
+.entity {
+  font: 25px/25px "Apple Color Emoji";
+  z-index: 1; }
+  .twemoji .entity::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: auto; }
+  .entity--sword::before {
+    content: "🗡"; }
+  .twemoji .entity--sword::before {
+    content: '';
+    background-image: twemoji-url("🗡"); }
+  .entity--knife::before {
+    content: "🔪"; }
+  .twemoji .entity--knife::before {
+    content: '';
+    background-image: twemoji-url("🔪"); }
+  .entity--gun::before {
+    content: "🔫"; }
+  .twemoji .entity--gun::before {
+    content: '';
+    background-image: twemoji-url("🔫"); }
+  .entity--bow::before {
+    content: "🏹"; }
+  .twemoji .entity--bow::before {
+    content: '';
+    background-image: twemoji-url("🏹"); }
+  .entity--pick::before {
+    content: "⛏"; }
+  .twemoji .entity--pick::before {
+    content: '';
+    background-image: twemoji-url("⛏"); }
+  .entity--ambulance::before {
+    content: "🚑"; }
+  .twemoji .entity--ambulance::before {
+    content: '';
+    background-image: twemoji-url("🚑"); }
+  .entity--banana::before {
+    content: "🍌"; }
+  .twemoji .entity--banana::before {
+    content: '';
+    background-image: twemoji-url("🍌"); }
+  .entity--bee::before {
+    content: "🐝"; }
+  .twemoji .entity--bee::before {
+    content: '';
+    background-image: twemoji-url("🐝"); }
+  .entity--bike::before {
+    content: "🚴"; }
+  .twemoji .entity--bike::before {
+    content: '';
+    background-image: twemoji-url("🚴"); }
+  .entity--boots::before {
+    content: "👢"; }
+  .twemoji .entity--boots::before {
+    content: '';
+    background-image: twemoji-url("👢"); }
+  .entity--building::before {
+    content: "🏢"; }
+  .twemoji .entity--building::before {
+    content: '';
+    background-image: twemoji-url("🏢"); }
+  .entity--cactus::before {
+    content: "🌵"; }
+  .twemoji .entity--cactus::before {
+    content: '';
+    background-image: twemoji-url("🌵"); }
+  .entity--camel::before {
+    content: "🐫"; }
+  .twemoji .entity--camel::before {
+    content: '';
+    background-image: twemoji-url("🐫"); }
+  .entity--carA::before {
+    content: "🚗"; }
+  .twemoji .entity--carA::before {
+    content: '';
+    background-image: twemoji-url("🚗"); }
+  .entity--carB::before {
+    content: "🚙"; }
+  .twemoji .entity--carB::before {
+    content: '';
+    background-image: twemoji-url("🚙"); }
+  .entity--chicken::before {
+    content: "🐣"; }
+  .twemoji .entity--chicken::before {
+    content: '';
+    background-image: twemoji-url("🐣"); }
+  .entity--chopper::before {
+    content: "🚁"; }
+  .twemoji .entity--chopper::before {
+    content: '';
+    background-image: twemoji-url("🚁"); }
+  .entity--cloud::before {
+    content: "☁"; }
+  .twemoji .entity--cloud::before {
+    content: '';
+    background-image: twemoji-url("☁"); }
+  .entity--corn::before {
+    content: "🌽"; }
+  .twemoji .entity--corn::before {
+    content: '';
+    background-image: twemoji-url("🌽"); }
+  .entity--creepsun::before {
+    content: "🌞"; }
+  .twemoji .entity--creepsun::before {
+    content: '';
+    background-image: twemoji-url("🌞"); }
+  .entity--dancer::before {
+    content: "💃"; }
+  .twemoji .entity--dancer::before {
+    content: '';
+    background-image: twemoji-url("💃"); }
+  .entity--door::before {
+    content: "🚪"; }
+  .twemoji .entity--door::before {
+    content: '';
+    background-image: twemoji-url("🚪"); }
+  .entity--elephant::before {
+    content: "🐘"; }
+  .twemoji .entity--elephant::before {
+    content: '';
+    background-image: twemoji-url("🐘"); }
+  .entity--fire::before {
+    content: "🔥"; }
+  .twemoji .entity--fire::before {
+    content: '';
+    background-image: twemoji-url("🔥"); }
+  .entity--firetruck::before {
+    content: "🚒"; }
+  .twemoji .entity--firetruck::before {
+    content: '';
+    background-image: twemoji-url("🚒"); }
+  .entity--fishA::before {
+    content: "🐟"; }
+  .twemoji .entity--fishA::before {
+    content: '';
+    background-image: twemoji-url("🐟"); }
+  .entity--fishB::before {
+    content: "🐠"; }
+  .twemoji .entity--fishB::before {
+    content: '';
+    background-image: twemoji-url("🐠"); }
+  .entity--flowerA::before {
+    content: "🌻"; }
+  .twemoji .entity--flowerA::before {
+    content: '';
+    background-image: twemoji-url("🌻"); }
+  .entity--flowerB::before {
+    content: "🌹"; }
+  .twemoji .entity--flowerB::before {
+    content: '';
+    background-image: twemoji-url("🌹"); }
+  .entity--flowerC::before {
+    content: "🌷"; }
+  .twemoji .entity--flowerC::before {
+    content: '';
+    background-image: twemoji-url("🌷"); }
+  .entity--gator::before {
+    content: "🐊"; }
+  .twemoji .entity--gator::before {
+    content: '';
+    background-image: twemoji-url("🐊"); }
+  .entity--ghost::before {
+    content: "👻"; }
+  .twemoji .entity--ghost::before {
+    content: '';
+    background-image: twemoji-url("👻"); }
+  .entity--hammer::before {
+    content: "🔨"; }
+  .twemoji .entity--hammer::before {
+    content: '';
+    background-image: twemoji-url("🔨"); }
+  .entity--heart::before {
+    content: "❤️"; }
+  .twemoji .entity--heart::before {
+    content: '';
+    background-image: twemoji-url("❤️"); }
+  .entity--houseA::before {
+    content: "🏠"; }
+  .twemoji .entity--houseA::before {
+    content: '';
+    background-image: twemoji-url("🏠"); }
+  .entity--houseB::before {
+    content: "🏡"; }
+  .twemoji .entity--houseB::before {
+    content: '';
+    background-image: twemoji-url("🏡"); }
+  .entity--invisible::before {
+    content: "  "; }
+  .twemoji .entity--invisible::before {
+    content: '';
+    background-image: twemoji-url("  "); }
+  .entity--leavesA::before {
+    content: "🍃"; }
+  .twemoji .entity--leavesA::before {
+    content: '';
+    background-image: twemoji-url("🍃"); }
+  .entity--leavesB::before {
+    content: "🍂"; }
+  .twemoji .entity--leavesB::before {
+    content: '';
+    background-image: twemoji-url("🍂"); }
+  .entity--leavesC::before {
+    content: "🌿"; }
+  .twemoji .entity--leavesC::before {
+    content: '';
+    background-image: twemoji-url("🌿"); }
+  .entity--mart::before {
+    content: "🏪"; }
+  .twemoji .entity--mart::before {
+    content: '';
+    background-image: twemoji-url("🏪"); }
+  .entity--monkey::before {
+    content: "🐒"; }
+  .twemoji .entity--monkey::before {
+    content: '';
+    background-image: twemoji-url("🐒"); }
+  .entity--musichall::before {
+    content: "🏫"; }
+  .twemoji .entity--musichall::before {
+    content: '';
+    background-image: twemoji-url("🏫"); }
+  .entity--palm::before {
+    content: "🌴"; }
+  .twemoji .entity--palm::before {
+    content: '';
+    background-image: twemoji-url("🌴"); }
+  .entity--person::before {
+    content: "🏃"; }
+  .twemoji .entity--person::before {
+    content: '';
+    background-image: twemoji-url("🏃"); }
+  .entity--personWalk::before {
+    content: "🚶"; }
+  .twemoji .entity--personWalk::before {
+    content: '';
+    background-image: twemoji-url("🚶"); }
+  .entity--police::before {
+    content: "🚓"; }
+  .twemoji .entity--police::before {
+    content: '';
+    background-image: twemoji-url("🚓"); }
+  .entity--rabbit::before {
+    content: "🐇"; }
+  .twemoji .entity--rabbit::before {
+    content: '';
+    background-image: twemoji-url("🐇"); }
+  .entity--santa::before {
+    content: "🎅"; }
+  .twemoji .entity--santa::before {
+    content: '';
+    background-image: twemoji-url("🎅"); }
+  .entity--shell::before {
+    content: "🐚"; }
+  .twemoji .entity--shell::before {
+    content: '';
+    background-image: twemoji-url("🐚"); }
+  .entity--shit::before {
+    content: "💩"; }
+  .twemoji .entity--shit::before {
+    content: '';
+    background-image: twemoji-url("💩"); }
+  .entity--silverware::before {
+    content: "🍴"; }
+  .twemoji .entity--silverware::before {
+    content: '';
+    background-image: twemoji-url("🍴"); }
+  .entity--snake::before {
+    content: "🐍"; }
+  .twemoji .entity--snake::before {
+    content: '';
+    background-image: twemoji-url("🐍"); }
+  .entity--snowflake::before {
+    content: "❄"; }
+  .twemoji .entity--snowflake::before {
+    content: '';
+    background-image: twemoji-url("❄"); }
+  .entity--snowman::before {
+    content: "⛄"; }
+  .twemoji .entity--snowman::before {
+    content: '';
+    background-image: twemoji-url("⛄"); }
+  .entity--speedboat::before {
+    content: "🚤"; }
+  .twemoji .entity--speedboat::before {
+    content: '';
+    background-image: twemoji-url("🚤"); }
+  .entity--moai::before {
+    content: "🗿"; }
+  .twemoji .entity--moai::before {
+    content: '';
+    background-image: twemoji-url("🗿"); }
+  .entity--sun::before {
+    content: "☀"; }
+  .twemoji .entity--sun::before {
+    content: '';
+    background-image: twemoji-url("☀"); }
+  .entity--sunglasses::before {
+    content: "👓"; }
+  .twemoji .entity--sunglasses::before {
+    content: '';
+    background-image: twemoji-url("👓"); }
+  .entity--tape::before {
+    content: "📼"; }
+  .twemoji .entity--tape::before {
+    content: '';
+    background-image: twemoji-url("📼"); }
+  .entity--taxi::before {
+    content: "🚕"; }
+  .twemoji .entity--taxi::before {
+    content: '';
+    background-image: twemoji-url("🚕"); }
+  .entity--tornado::before {
+    content: "💨"; }
+  .twemoji .entity--tornado::before {
+    content: '';
+    background-image: twemoji-url("💨"); }
+  .entity--treeA::before {
+    content: "🌲"; }
+  .twemoji .entity--treeA::before {
+    content: '';
+    background-image: twemoji-url("🌲"); }
+  .entity--treeB::before {
+    content: "🎄"; }
+  .twemoji .entity--treeB::before {
+    content: '';
+    background-image: twemoji-url("🎄"); }
+  .entity--treeC::before {
+    content: "🌳"; }
+  .twemoji .entity--treeC::before {
+    content: '';
+    background-image: twemoji-url("🌳"); }
+  .entity--turtle::before {
+    content: "🐢"; }
+  .twemoji .entity--turtle::before {
+    content: '';
+    background-image: twemoji-url("🐢"); }
+  .entity--wave::before {
+    content: "🌊"; }
+  .twemoji .entity--wave::before {
+    content: '';
+    background-image: twemoji-url("🌊"); }
+  .entity--willows::before {
+    content: "🌾"; }
+  .twemoji .entity--willows::before {
+    content: '';
+    background-image: twemoji-url("🌾"); }
+  .entity--storesign--v, .entity--storesign--i, .entity--storesign--d, .entity--storesign--e, .entity--storesign--o, .entity--storesign--s, .entity--storesign--t, .entity--storesign--r {
+    color: #f00;
+    text-align: center;
+    text-shadow: 1px 1px #fff, 2px 2px #333, 3px 3px #333; }
+  .entity--storesign--v::before {
+    content: "V"; }
+  .entity--storesign--i::before {
+    content: "I"; }
+  .entity--storesign--d::before {
+    content: "D"; }
+  .entity--storesign--e::before {
+    content: "E"; }
+  .entity--storesign--o::before {
+    content: "O"; }
+  .entity--storesign--s::before {
+    content: "S"; }
+  .entity--storesign--t::before {
+    content: "T"; }
+  .entity--storesign--r::before {
+    content: "R"; }
+
+.tile {
+  width: 25px;
+  height: 25px;
+  position: absolute; }
+
+.hud {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 25px;
+  height: 80px;
+  background: #555; }
+  .hud__itemGroup {
+    display: flex; }
+    .hud__itemGroup:not(:last-of-type) {
+      margin-right: 1em; }
+  .hud__item:not(:last-of-type) {
+    margin-right: 1em; }
+  .hud__item::before {
+    margin-right: 0.5em; }
+  .hud__item--time::before {
+    content: "⏳"; }
+  .hud__item--tapes::before {
+    content: "📼"; }
+  .hud__label {
+    display: inline-block;
+    margin-right: 0.5em; }
+    .hud__label::after {
+      content: ":"; }
+  .hud__content {
+    display: inline-block; }
+  .hud__powerup {
+    display: inline-block; }
+    .hud__powerup:not(.hud__powerup--collected) {
+      opacity: 0.2; }
+
+.flipped--x {
+  transform: scale(-1, 1); }
+
+.camera {
+  overflow: hidden;
+  width: 100%;
+  height: 100%; }
+
+.game {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); }
+  @media screen and (max-height: 850px) {
+    .game {
+      transform: translate(-50%, -50%) scale(0.8); } }
+  .game__instructions {
+    font-size: 2.0rem;
+    margin-top: 1em;
+    line-height: 1em;
+    text-align: justify; }
+
+.world {
+  position: relative; }

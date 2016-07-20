@@ -1,0 +1,272 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"in",
+				"input	Tag"
+			],
+			[
+				"remo",
+				"remove"
+			],
+			[
+				"e",
+				"edit"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "dungeonCrawler.js",
+			"settings":
+			{
+				"buffer_size": 6846,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "Package Control Messages\n========================\n\nES6-Toolkit\n-----------\n\n  Package Control Messages\n  ========================\n  \n  ES6-Toolkit:\n  ---\n  \n    Thanks for installing Sublime ES6-Toolkit! Below are some quick notes to get you\n    started with the plugin. Please see https://github.com/Stephn-R/ES6-Toolkit for\n    the full documentation.\n    \n    \n    ----------------------------------------------------------------------------------\n                                        IMPORTANT\n    ----------------------------------------------------------------------------------\n    \n    In order to be able to run the ES6 Compiler, you will need to install the NPM module\n    `babel` globally. Please run the following command to install babel:\n  \n    ```bash\n    npm install -g babel\n    ```\n  \n    ----------------------------------------------------------------------------------\n  \n    ## Features\n  \n    The ES6-Toolkit comes pre-packages with lots of cool tools. Below is a short list\n    with links to more information in the Wiki Pages:\n  \n    1. ES6 Completions => [Wiki Link](http://www.google.com)\n  \n    ## Coming Soon\n  \n    1. ES6 Inline Compiling\n    2. Compile entire JS files to ES5 using Babel\n    3. Compile entire projects to ES5 using Babel\n    \n    Support\n    ----\n    \n    To learn more about the features and settings, please visit\n    https://github.com/Stephn-R/ES6-Toolkit-for-Sublime\n    \n    If you are having trouble, please contact me at steprodriguez10@gmail.com\n",
+			"settings":
+			{
+				"buffer_size": 1506,
+				"line_ending": "Unix",
+				"name": "Package Control Messages",
+				"read_only": true,
+				"scratch": true
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"last_filter": "pack",
+		"selected_items":
+		[
+			[
+				"pack",
+				"Package Control: Install Package"
+			],
+			[
+				"in",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 467.0
+	},
+	"console":
+	{
+		"height": 126.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '2915d1851351e5ee549c20394736b442' + '8bc59f460fa1548d1514676163dafc88'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/Applications/MAMP/htdocs/dungeonCrawler"
+	],
+	"file_history":
+	[
+		"/Applications/MAMP/htdocs/sassEssentials/process/sass/modules/_backgrounds.scss",
+		"/Applications/MAMP/htdocs/React_2016/Ch03/03_05/finish/index.html",
+		"/Applications/MAMP/htdocs/React_2016/Ch03/03_05/start/index.html",
+		"/Users/jrogatis/Library/Application Support/Sublime Text 3/Packages/User/Preferences.sublime-settings",
+		"/Applications/MAMP/htdocs/React_2016/Ch03/03_04/start/js/Note.js"
+	],
+	"find":
+	{
+		"height": 0.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "dungeonCrawler.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6846,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1650,
+								1650
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1506,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1506,
+								1506
+							]
+						],
+						"settings":
+						{
+							"auto_indent": false,
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_width": 2,
+							"word_wrap": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "crowler.sublime-project",
+	"replace":
+	{
+		"height": 0.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": false,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 355.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

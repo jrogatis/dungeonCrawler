@@ -1,0 +1,305 @@
+@charset "UTF-8";
+
+html, body,
+h1, h2, h3, h4, h5, h6,
+p, ol, ul, dl, dt, dd, li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+
+
+$cellSize:  25px;
+$uiColor:   #555;
+$hudHeight: 80px;
+$navbarHeight: 40px;
+
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+
+#mountNode {
+
+		div{
+			#Header {
+					text-align: center;
+					//font-family: 'Segment7Standard';
+				label{
+					font-size: 15px;
+					text-align: right;
+
+				}
+			}
+
+		div#GameBoard {
+
+				min-height: 600px;
+				background-color: darkgreen;
+
+		}
+
+			#Footer {
+					text-align: center;
+					//font-family: 'Segment7Standard';
+				label{
+					font-size: 15px;
+					text-align: center;
+
+				}			
+			}	
+
+	}
+}
+
+.ground {
+
+  &--grass    { background-color: #76b55e; }
+  &--path     { background-color: #d2a354; }
+  &--water    { background-color: #68a4b7; }
+  &--sand     { background-color: #efdfa7; }
+  &--forest   { background-color: #536a3e; }
+  &--sky      { background-color: #b8ecfe; }
+  &--doorway  { background-color: #fef9b8; }
+  &--snow     { background-color: #fffeed; }
+
+  &--sidewalk {
+    background-color: #d8d8d8;
+    border: 1px solid #c6c6c6;
+    border-left-color: #e1e1e1;
+  }
+
+  &--road     { background-color: #565656; }
+  &--roadline {
+    background-color: #565656;
+    border-top: 3px dashed #eed800;
+  }
+
+}
+
+.entity {
+
+  font: #{$cellSize}/#{$cellSize} "Apple Color Emoji";
+  z-index: 1;
+
+  .twemoji &::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: auto;
+  }
+	
+$entities: (
+	sword:"🗡",
+	knife: "🔪",
+	gun: "🔫",	
+	bow:"🏹",
+	pick:"⛏",
+    ambulance: "🚑",
+    banana: "🍌",
+    bee: "🐝",
+    bike: "🚴",
+    boots: "👢",
+    building: "🏢",
+    cactus: "🌵",
+    camel: "🐫",
+    carA: "🚗",
+    carB: "🚙",
+    chicken: "🐣",
+    chopper: "🚁",
+    cloud: "☁",
+    corn: "🌽",
+    creepsun: "🌞",
+    dancer: "💃",
+    door: "🚪",
+    elephant: "🐘",
+    fire: "🔥",
+    firetruck: "🚒",
+    fishA: "🐟",
+    fishB: "🐠",
+    flowerA: "🌻",
+    flowerB: "🌹",
+    flowerC: "🌷",
+    gator: "🐊",
+    ghost: "👻",
+    hammer: "🔨",
+    heart: "❤️",
+    houseA: "🏠",
+    houseB: "🏡",
+    invisible: "  ",
+    leavesA: "🍃",
+    leavesB: "🍂",
+    leavesC: "🌿",
+    mart: "🏪",
+    monkey: "🐒",
+    musichall: "🏫",
+    palm: "🌴",
+    person: "🏃",
+    personWalk: "🚶",
+    police: "🚓",
+    rabbit: "🐇",
+    santa: "🎅",
+    shell: "🐚",
+    shit: "💩",
+    silverware: "🍴",
+    snake: "🐍",
+    snowflake: "❄",
+    snowman: "⛄",
+    speedboat: "🚤",
+    moai: "🗿",
+    sun: "☀",
+    sunglasses: "👓",
+    tape: "📼",
+    taxi: "🚕",
+    tornado: "💨",
+    treeA: "🌲",
+    treeB: "🎄",
+    treeC: "🌳",
+    turtle: "🐢",
+    wave: "🌊",
+    willows: "🌾"
+  );	
+	
+  
+
+  @each $entity, $value in $entities {
+    &--#{$entity}::before { content: $value; }
+
+    .twemoji &--#{$entity}::before {
+      content: '';
+      background-image: twemoji-url($value);
+    }
+  }
+
+  &--storesign--v,
+  &--storesign--i,
+  &--storesign--d,
+  &--storesign--e,
+  &--storesign--o,
+  &--storesign--s,
+  &--storesign--t,
+  &--storesign--r {
+    color: #f00;
+    text-align: center;
+    text-shadow: 1px 1px #fff, 2px 2px #333, 3px 3px #333;
+  }
+
+  &--storesign--v::before { content: "V"; }
+  &--storesign--i::before { content: "I"; }
+  &--storesign--d::before { content: "D"; }
+  &--storesign--e::before { content: "E"; }
+  &--storesign--o::before { content: "O"; }
+  &--storesign--s::before { content: "S"; }
+  &--storesign--t::before { content: "T"; }
+  &--storesign--r::before { content: "R"; }
+
+}
+
+.tile {
+  width: $cellSize;
+  height: $cellSize;
+  position: absolute;
+}
+
+.hud {
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 $cellSize;
+  height: $hudHeight;
+  background: $uiColor;
+
+  &__itemGroup {
+    display: flex;
+
+    &:not(:last-of-type) { margin-right: 1em; }
+  }
+
+  &__item {
+    &:not(:last-of-type) { margin-right: 1em; }
+
+    &::before { margin-right: 0.5em; }
+
+    &--time::before  { content: "⏳"; }
+    &--tapes::before { content: "📼"; }
+  }
+
+  &__label {
+    display: inline-block;
+    margin-right: 0.5em;
+
+    &::after { content: ":"; }
+  }
+
+  &__content {
+    display: inline-block;
+  }
+
+  &__powerup {
+    display: inline-block;
+
+    &:not(#{&}--collected) { opacity: 0.2; }
+  }
+
+}
+
+.flipped--x {
+  transform: scale(-1, 1);
+}
+
+.camera {
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+
+}
+
+.game {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  // Scale down on smaller screens in the simplest way possible.
+  // TODO: Make the game much more responsive.
+  $totalHeight: (
+    600px +
+    $hudHeight +
+    (6 * 20) + // Rough height of text. See TODO above.
+    $navbarHeight +
+    10px
+  );
+	
+ @media screen and (max-height: $totalHeight) {
+    & { transform: translate(-50%, -50%) scale(0.8); }
+  }
+
+  &__instructions {
+    font-size: 2.0rem;
+    margin-top: 1em;
+    // Interesting note here: the `line-height` must be `1em`
+    // or another multiple that results in a number ending in
+    // 0 in order for the tiles to render correctly. Non-0
+    // numbers result in bands between tile rows. This appears
+    // to result from `.game` being scaled down; scaling just
+    // the camera or world etc works as expected—the text has
+    // an effect on the alignment of child nodes of a sibling.
+    line-height: 1em;
+    text-align: justify;
+  }
+}	
+	
+	
+
+
+.world {
+  position: relative;
+}
+
+
