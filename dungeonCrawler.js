@@ -5,14 +5,17 @@
 const returnTrue = () => true;
 const not = _.negate;
 
+const is = _.curry((prop, val, entity) => entity[prop] === val);
+/*************************************************************/
+//definitions 
+//habilities 
+
 const canBlock = returnTrue;
 const canCollect = returnTrue;
 const canDestroy = returnTrue;
 const canKill = returnTrue;
 //condcional for can win or not yet...
 const canWin = (s) => s.get('numTapes') >= level.getNumTapesTotal(s);
-
-const is = _.curry((prop, val, entity) => entity[prop] === val);
 
 //if you dont have this ability you cant pass this tile...
 const blocksUnless = (hasAbility) => ({
@@ -30,6 +33,10 @@ const hasPowerup = _.curry((powerup, state, entity) => {
  const hasSilverware = hasPowerup('silverware');
  const hasSpeedboat = hasPowerup('speedboat');
  const hasSunglasses = hasPowerup('sunglasses');
+//end the habilities
+/*************************************************************/
+
+// map definitions
 
 const grounds = {
   GA: { type: 'grass' },
@@ -128,7 +135,7 @@ const powerupTypes = [
   entities.PD.type,
   entities.PE.type
 ];
-
+//end of definitions 
  const PX_PER_COL = 25;
  const PX_PER_ROW = 25;
  const CAM_COLS   = 800 / PX_PER_COL;
@@ -312,6 +319,8 @@ const groundToType = Object.freeze({
   water: 'speedboat',
 });
 
+/*************************************************************/
+// end of map definitions 
 
 //*********************************************************************
 // definitions for using react-bootstrap and FontAwesome... 
@@ -426,12 +435,22 @@ FontAwesome.propTypes = {
   }
 
 //*********************************************************************
+const reducer = (state = initialState, action) => {
+  return (
+  
+    appReducer.reduce(state, action)
+	)
+};
+
+
+const createStore =  {
+  return createReduxStore(reducer);
+};
+//redux area 
+const {    Provider  } = ReactRedux;
 //inicial state 
-/*const initialState = Immutable.fromJS({
-  editor: {
-    activeEntity: null,
-    activeGround: null,
-  },
+const initialState = Immutable.fromJS({
+ 
   router: null,
   // level: null,
   numTapes: 0,
@@ -445,7 +464,13 @@ FontAwesome.propTypes = {
     // col: null,
     direction: 'left'
   }
-});*/
+});
+
+//const store = createStore(initialState);
+
+//console.log(JSON.stringify(store));
+
+/*************************************************/
 
 class Tiles extends React.Component{
  
@@ -885,14 +910,16 @@ class Controler extends React.Component {
 		this.state = {
 			
 		};		
-		
+		const store = createStore();
 	};
 	
 	render () {
 		return (
 			<Grid fluid>
 			<Header/>
-		 	<GameBoard/>
+			<Provider store={store}>
+		 		<GameBoard/>
+			</Provider>
 			<Footer/>
 			</Grid>
 		)
