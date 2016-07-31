@@ -1,55 +1,149 @@
 // JavaScript Document
 /*jshint esversion: 6 */
 
+
+const returnTrue = () => true;
+const not = _.negate;
+
+const is = _.curry((prop, val, entity) => entity[prop] === val);
+/*************************************************************/
+//definitions 
+//habilities 
+
+const canBlock = returnTrue;
+const canCollect = returnTrue;
+const canDestroy = returnTrue;
+const canKill = returnTrue;
+//condcional for can win or not yet...
+const canWin = (s) => s.get('numTapes') >= level.getNumTapesTotal(s);
+
+//if you dont have this ability you cant pass this tile...
+const blocksUnless = (hasAbility) => ({
+  canBlock: not(hasAbility),
+  canDie: hasAbility
+});
+
+const hasPowerup = _.curry((powerup, state, entity) => {
+  return state.get('powerups').includes(powerup);
+});
+
+//check the habilities 
+ const hasBoots = hasPowerup('boots');
+ const hasHammer = hasPowerup('hammer');
+ const hasSilverware = hasPowerup('silverware');
+ const hasSpeedboat = hasPowerup('speedboat');
+ const hasSunglasses = hasPowerup('sunglasses');
+//end the habilities
+/*************************************************************/
+
+// map definitions
+
+const grounds = {
+  GA: { type: 'grass' },
+  GB: { type: 'path' },
+  GC: { type: 'water' },
+  GD: { type: 'sand' },
+  GE: { type: 'forest' },
+  GF: { type: 'road' },
+  GG: { type: 'sidewalk' },
+  GH: { type: 'sky' },
+  GI: { type: 'roadline' },
+  GJ: { type: 'doorway' },
+  GK: { type: 'snow' },
+};
+const entities = {
+  '00': { type: 'empty' },
+  '01': { type: 'start' },
+  // Special
+  SA: { type: 'tape', canCollect },
+  SB: { type: 'door', canWin, canDestroy: canWin, canBlock: not(canWin) },
+  SC: { type: 'person' },
+  SD: { type: 'invisible', canBlock },
+  SE: { type: 'ghost' },
+  // Powerups
+  PA: { type: 'sunglasses', canCollect },
+  PB: { type: 'silverware', canCollect },
+  PC: { type: 'speedboat',  canCollect },
+  PD: { type: 'boots',      canCollect },
+  PE: { type: 'hammer',     canCollect },
+  // Bounds
+  BA: { type: 'treeA',    canBlock },
+  BB: { type: 'treeB',    canBlock },
+  BC: { type: 'building', canBlock },
+  BD: { type: 'rabbit',   ...blocksUnless(hasHammer) },
+  BE: { type: 'chicken',  ...blocksUnless(hasHammer) },
+  BF: { type: 'fishA',    ...blocksUnless(hasSpeedboat) },
+  BG: { type: 'fishB',    ...blocksUnless(hasSpeedboat) },
+  BH: { type: 'turtle',   ...blocksUnless(hasBoots) },
+  BI: { type: 'camel',    ...blocksUnless(hasHammer) },
+  BJ: { type: 'cloud',    canBlock },
+  BK: { type: 'creepsun', ...blocksUnless(hasHammer) },
+  BL: { type: 'palm',     canBlock },
+  BM: { type: 'flowerA',  ...blocksUnless(hasBoots) },
+  BN: { type: 'flowerB',  ...blocksUnless(hasBoots) },
+  BO: { type: 'flowerC',  ...blocksUnless(hasBoots) },
+  BP: { type: 'treeC',    canBlock },
+  BQ: { type: 'leavesA',  canBlock },
+  BR: { type: 'leavesB',  canBlock },
+  BS: { type: 'leavesC',  canBlock },
+  BT: { type: 'willows',  canBlock },
+  BU: { type: 'shell',    ...blocksUnless(hasBoots) },
+  BV: { type: 'snowflake', canBlock },
+  BW: { type: 'banana',    canDestroy: hasSilverware },
+  BX: { type: 'monkey',    ...blocksUnless(hasHammer) },
+  BY: { type: 'elephant',  ...blocksUnless(hasHammer) },
+  BZ: { type: 'houseA',    canBlock },
+  CA: { type: 'houseB',    canBlock },
+  CB: { type: 'mart',      canBlock },
+  CC: { type: 'musichall', canBlock },
+  CD: { type: 'moai',      ...blocksUnless(hasHammer) },
+  // The sign
+  ZL: { type: 'storesign--v', canBlock },
+  ZM: { type: 'storesign--i', canBlock },
+  ZN: { type: 'storesign--d', canBlock },
+  ZO: { type: 'storesign--e', canBlock },
+  ZP: { type: 'storesign--o', canBlock },
+  ZQ: { type: 'storesign--s', canBlock },
+  ZR: { type: 'storesign--t', canBlock },
+  ZS: { type: 'storesign--r', canBlock },
+  // Killers without items
+  DA: { type: 'sun',     canKill: not(hasSunglasses) },
+  DB: { type: 'corn',    canBlock: not(hasSilverware), canDestroy: hasSilverware },
+  DC: { type: 'wave',    canBlock: not(hasSpeedboat) },
+  DD: { type: 'fire',    canKill: not(hasBoots), canDestroy: hasBoots },
+  DE: { type: 'snowman', canKill: not(hasHammer), canDie: hasHammer },
+  DF: { type: 'santa',   canKill: not(hasHammer), canDie: hasHammer },
+  DG: { type: 'shit',    canKill: not(hasBoots),  canDie: hasBoots },
+  // Killers always
+  KA: { type: 'bee',       canKill },
+  KB: { type: 'gator',     canKill },
+  KC: { type: 'snake',     canKill },
+  KD: { type: 'carA',      canKill },
+  KE: { type: 'carB',      canKill },
+  KF: { type: 'taxi',      canKill },
+  KG: { type: 'firetruck', canKill },
+  KH: { type: 'police',    canKill },
+  KI: { type: 'ambulance', canKill },
+  KJ: { type: 'cactus',    canKill },
+  KK: { type: 'tornado',   canKill },
+	
+};
+const powerupTypes = [
+  entities.PA.type,
+  entities.PB.type,
+  entities.PC.type,
+  entities.PD.type,
+  entities.PE.type
+];
+//end of definitions 
  const PX_PER_COL = 25;
  const PX_PER_ROW = 25;
  const CAM_COLS   = 800 / PX_PER_COL;
  const CAM_ROWS   = 600 / PX_PER_ROW;
 
-//inicial state 
-const initialState = Immutable.fromJS({
-  editor: {
-    activeEntity: null,
-    activeGround: null,
-  },
-  router: null,
-  // level: null,
-  numTapes: 0,
-  deaths: 0,
-  time: 5 * 60,
-  powerups: [],
-  health: 4,
-  hasWon: false,
-  player: {
-    // row: null,
-    // col: null,
-    direction: 'left'
-  }
-});
- 
- //redux initializer 
- 
-const routerStateSelector = (state) => state.get('router');
- 
- const reducer = (state = initialState, action) => {
-  return (
-    appReducer.supports(action.type) ?
-    appReducer.reduce(state, action) :
-    // Assume any non-supported actions deal with routing for now.
-    state.set('router', routerStateReducer(routerStateSelector(state), action))
-  );
-};
- 
-function createStore() {
-  return compose(
-    applyMiddleware(thunk),
-    reduxReactRouter({ createHistory: createHistoryWithBasename, routerStateSelector })
-  )(createReduxStore)(reducer);
-};
 
-const store = createStore();
-
- const grounds = [
+//arrays with the maps for ground and entities 
+const GROUNDS = [
   "GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH",
   "GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH",
   "GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH GH",
@@ -132,6 +226,129 @@ const store = createStore();
   "GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GB GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA",
   "GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GB GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA GA"
 ];
+const ENTITIES = [
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 BJ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BJ BJ BJ 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 BJ BJ BJ 00 00 00 00 SA BJ BJ BJ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BJ BJ BJ BJ BJ BJ 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 BJ BJ BJ BJ BJ BJ 00 00 00 00 00 00 00 ZL ZM ZN ZO ZP ZQ ZR ZP ZS ZO 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BK 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BC BC BC BC BC BC BC BC BC BC 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 CB 00 00 00 00 00 CA 00 CA 00 CA 00 00 00 00 00 BC BC BC BC BC BC SB BC BC BC 00 00 00 CB 00 00 CC CC 00 00 00 00 BM CA BP CA BP CA BP 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 SA 00 00 00 00 00 00 00 00 00",
+  "00 00 KD 00 00 00 00 00 00 00 00 00 00 00 00 KI 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 SA KF 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 KH 00 00 00 00 00 SA 00 00 00 00 00 00 00 00 KG 00 00 00 00 KE 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 SA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BP BP 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BP BP BP BP BO 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 BO BP BP 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BM BM 00 00 00 00 00 00 BO BP BP BP BP 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 BO BP BP BP 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BM BM SA BM BM 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 BV 00 00 00 BP BP BP 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BM BM BM BM BM 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 DE BV BV 00 00 00 00 BP 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BM BM 00 00 00 00 00 00 00 00 00 00 00 BL BL BL 00 00",
+  "00 00 00 00 SA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BV 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BL BL BL 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BW 00 00 00 00 00 00 00 BL BL BL 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BX BX 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BX DG 00 00 00 00 00 BL 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 BV BV 00 00 00 DE 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BW 00 00 00 00 BL 00 SA 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 BV 00 00 00 BV DE SA DE 00 00 00 00 00 00 00 00 00 00 00 00 00 BW BL 00 00 00 00 00 00 00 00 00 00 BT 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 DE BV DE 00 00 00 00 00 00 00 00 00 00 00 00 BO 00 BX 00 BY 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 BD 00 00 DE 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 KJ 00 00 BX 00 00 00 00 00 00 BY DG 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 SA 00 00 00 00 00 DE 00 00 BV 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 SA 00 00 00 BY 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 BV 00 00 00 BB 00 00 DE BA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BM 00 00 00 BX 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 BB 00 00 DE 00 BB 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BO 00 BL 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BD 00 00 00 00 00 00 00 00 00 00 00 00 BF 00 00 00 BM 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 BA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 DG 00 00 00 00 00 00 00 00 00 00 00 00 SA 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 BV 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BR 00 00 00 00 00",
+  "00 00 00 00 00 BA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 BV 00 00 00 00 00 00 00 BD DG 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BP 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BP BP BP 00 BQ 00 00 00 00 00 00",
+  "00 00 BA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BR 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BO BO BO BO 00 00 00 00 00 00 BQ 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BO BO BO BO BO BO BO BO 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BS 00 BS 00 00 00 00 00 00 00 00 00 00 00 00 BN BO BO SA BO BO BO BO 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BT BS BS 00 BS 00 00 00 00 00 00 00 00 00 00 00 00 BN BO BO BO BO BO BN 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BT BS BS BS BP 00 BP 00 00 00 00 00 00 00 00 00 00 00 BN BN BO BO BO BO BN 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BT BP BS BP BS 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BO BO 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 BR 00 00 00 00 00 00 00 00 BS BS BS 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BS BS BS 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 BA 00 00 BB BB BB BB BB BB 00 00 00 00 BA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BR 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 BB BB BB BO BO BO BB BB 00 00 BA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 BQ 00 BB BB BO DE SA DE BB 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BT BP BP BP BT 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 BB BB DE DE DE DE BB BB 00 00 00 00 00 00 00 00 00 BR 00 00 00 00 00 00 BS BP BP BP 00 00 00 00 00 00 00 KJ 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 BO BB DE DE DE DE BB BB 00 00 00 00 00 00 00 00 BQ 00 00 00 00 00 00 00 BS BP BP BP BP 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 BR 00 BO BB BB 00 BB BB BB BB 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BP BP BP SA BQ 00 00 00 00 00 00 00 00 KJ KJ 00 00 00 00 KC 00 00",
+  "00 00 00 00 BB BB 00 BB BB BB 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BP BP BP BP BT 00 00 00 00 00 00 00 00 BO 00 00 00 00 00 00 00 00 00 00",
+  "00 00 BA 00 BB BB 00 BB BB BB 00 00 BQ 00 BA 00 00 BS 00 00 BP 00 00 00 00 00 00 BP BP BP BD BP 00 00 00 00 00 00 00 00 00 00 00 00 00 KC 00 00 00 00",
+  "00 BA BA 00 BB BB 00 00 00 00 00 00 00 00 00 00 00 BP BP BS BP 00 00 00 00 00 00 00 BP 00 00 BD 00 00 00 00 00 KJ 00 00 00 DD DD DD DD 00 00 00 00 00",
+  "00 00 00 00 BB BB BB BB BB BB 00 00 00 00 00 00 00 BP BP BP 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 DD DD DD DD DD DD 00 00 00 00",
+  "00 00 00 00 00 BB BB BB BB 00 00 00 00 00 00 00 00 00 BP BP BP 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BI 00 00 00 00 DD DD DD PE DD DD 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BP BP BP 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BI 00 00 DD DD DD DD DD DD 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BH 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 DD DD DD DD 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 BS BS 00 00 00 00 00 00 BH BH BH 00 00 00 00 00 00 BP BP 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BH SA BH BH 00 00 00 00 00 00 00 BP BP 00 00 00 00 00 00 00 00 00 KJ 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 BT 00 DC DC DC DC DC 00 00 00 BU 00 00 00 00 BH BH BH 00 00 00 00 00 00 00 BP 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 DC",
+  "00 00 00 00 DC DC DC DC DC DC DC DC DC DC DC DC DC DC DC 00 00 00 00 00 BH 00 00 00 00 00 00 00 00 00 00 00 00 BT 00 00 00 00 00 00 00 DC DC DC DC DC",
+  "DC DC DC PD KB KB DC DC DC DC DC DC DC DC DC DC DC DC DC DC DC DC DC DC 00 00 00 00 00 00 BT 00 00 DC DC DC DC DC DC 00 BU BU 00 DC DC DC DC DC DC DC",
+  "DC DC KB KB KB KB DC DC DC DC DC BF DC DC DC DC DC DC DC DC DC DC DC DC DC 00 00 00 00 00 DC DC DC DC DC DC DC DC DC DC DC DC DC DC DC DC DC DC DC DC",
+  "DC DC DC DC DC DC DC DC DC 00 00 BT BT 00 BF DC DC DC DC DC DC DC DC DC DC DC 00 00 BT DC DC BG BG DC DC DC DC DC KB DC DC DC DC DC DC DC DC DC DC DC",
+  "DC DC DC DC 00 00 BU BU 00 00 00 00 00 00 00 00 00 00 00 DC DC KB KB DC DC DC 00 00 DC DC BG BG BG DC DC DC DC DC DC DC DC DC DC DC DC DC DC DC BA BA",
+  "00 00 00 00 00 00 00 00 00 00 BP 00 00 00 00 00 00 00 00 00 00 DC DC DC DC DC DC DC DC DC DC DC 00 00 BA BA BA BA BA BA BA BA BA BA BA BA BA PC BA BA",
+  "00 00 00 00 00 00 00 00 00 BP BP BQ 00 00 00 BA BA 00 00 00 00 00 00 DC DC DC DC DC DC DC DC 00 00 00 00 00 BA BA DB DB DB DB DB DB DB DB DB DB BA BA",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 BA BA BA 00 BA 00 00 00 00 00 DC DC DC DC DC DC 00 00 00 00 00 00 00 BA BA DB BA BA BA BA BA BA BA BA BA BA",
+  "00 SA 00 00 00 00 00 00 00 00 00 00 00 00 BA SA 00 00 BA 00 00 00 00 00 00 DC DC DC DC 00 00 00 00 00 00 00 00 BA BA 00 BA BA BA BA BA BA BA BA BA BA",
+  "00 00 00 00 00 00 00 00 BE 00 00 00 00 BA BA BA BA BA BA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BA BA BA SA BA",
+  "00 00 00 00 BA BA 00 00 00 00 00 00 00 00 BA BA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BA",
+  "00 00 BE BA BA BA BA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BA BA BA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BP 00 00 00 BA BA BA",
+  "00 BA BA BA BA PB BA 00 BD DG 00 00 00 00 00 00 00 00 00 00 00 00 BA BA BA BA BA BA BA BA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 BE BA BA DA BA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 BA BA 00 00 00 00 00 00 00 00 00 BA BA BA 00 00 00 00 00 00 BA BA BA BA BA BA BA PA 00 00 00 00 00 00 BA 00 00 CD CD CD CD 00 00 00 00 00 00",
+  "00 00 00 00 00 00 BD 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BA BA BA BA BA BA BA BA BA BA BA 00 00 CD BN BN CD 00 00 BO BO 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 BA BA BA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BA BA BA BA 00 00 00 00 00 00 CD BN SA CD 00 BO BO 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 KA 00 00 00 00 00 SA 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 CD BN BN CD 00 BO BO BO 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 KA 00 00 KA 00 00 00 00 00 00 00 00 00 00 00 00 BP 00 00 00 00 00 00 00 00 CD CD CD CD 00 00 BO 00 00 00",
+  "00 00 00 BP 00 BP 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 BP 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+];
+
+//player definitions 
+const groundToType = Object.freeze({
+  doorway: 'dancer',
+  road: 'bike',
+  roadline: 'bike',
+  sidewalk: 'personWalk',
+  sky: 'chopper',
+  water: 'speedboat',
+});
+
+//class with level definitions
+
+/*************************************************************/
+// end of map definitions 
+
+//*********************************************************************
+// definitions for using react-bootstrap and FontAwesome... 
+const {
+
+  Modal,
+  Button,
+  Grid,
+  Col,
+  Row,
+  Form,
+  FormGroup,
+  FormControl,
+  ControlLabel,
+  ButtonToolbar,
+  ButtonGroup,
+  Table,
+  thead,
+  tbody,
+  tr,
+  td,
+  Well,
+  Glyphicon
+	
+} = ReactBootstrap;
 
 class FontAwesome extends React.Component{
 	constructor(props) {
@@ -220,47 +437,36 @@ FontAwesome.propTypes = {
     stack: React.PropTypes.oneOf([ '1x', '2x' ]),
   }
 
-const {
 
-  Modal,
-  Button,
-  Grid,
-  Col,
-  Row,
-  Form,
-  FormGroup,
-  FormControl,
-  ControlLabel,
-  ButtonToolbar,
-  ButtonGroup,
-  Table,
-  thead,
-  tbody,
-  tr,
-  td,
-  Well,
-  Glyphicon
-	
-} = ReactBootstrap;
+
+//models area 
+// general functions that helps to manage the player and the map
+
+
 
 class Tiles extends React.Component{
  
-  renderTilesRow(row, i) {
-    const { block } = this.props;// o block e pra falar se ground ou entities
-    return (
-      <TilesRow
-        key={i}
-        block={block}
-        tiles={row}
-      />
-    );
-  }
 
   render() {
-    const { tiles } = this.props;
+    const { tiles,block } = this.props;
+	var arrTiles = [];
+	 
+	  tiles.map(function(row,i){
+		  row = row.split(' ')
+		  var temp =  <TilesRow
+		  				key={i}
+						row={i}
+						block={block}
+        				tiles={row}
+						/>
+		 arrTiles.push(temp) 
+					
+	  })
+	  
+	  
     return (
       <div className="tiles">
-        {tiles.map(this.renderTilesRow)}
+        {arrTiles}
       </div>
     );
   }
@@ -268,25 +474,40 @@ class Tiles extends React.Component{
 
 class TilesRow extends React.Component {
 
-  renderTile(tile) {
-	var key = type-row-col;
-    const { block } = this.props;
-    const { type, row, col } = tile;
-    return !tile ? null : (
-      <Tile
-        key={key}
-        block={block}
-        col={col}
-        row={row}
-        type={type}
-      />
-    );
-  }
 
   render() {
-    return (
+	 const { block,row } = this.props;
+	  var arrTiles = []
+	  var typeTemp;
+	  
+	  this.props.tiles.map(function(tile,i){
+		  
+		  var key = tile + "-"+ row +"-" +i;
+		
+		 if (block === "ground")	{
+			  typeTemp = grounds[tile].type;
+		  } else {
+			   typeTemp = entities[tile].type;
+		  }
+		  
+		  var temp = <Tile
+						key={key}
+						block={block}
+						col={i}
+						row={row}
+						type={typeTemp}
+					  />;
+					  
+		arrTiles.push(temp);			  
+		  
+		  
+	  })
+	  
+	  
+	  
+   return (
       <div className="tiles__row">
-        {this.props.tiles.map(this.renderTile)}
+        {arrTiles}
       </div>
     );
   }
@@ -313,7 +534,7 @@ class Tile extends React.Component {
 	  
 		var topRow = (PX_PER_ROW * row) + "px";
 		var leftCol =  (PX_PER_COL * col) + "px";
-		var clsName = className +" tile " + block + " " + block + "--" + type;
+		var clsName = "tile " + block + " " + block + "--" + type;
     	const attrs = {
 			...this.props,
 			style: {
@@ -336,8 +557,7 @@ class Tile extends React.Component {
 }
 
 class Camera extends React.Component {
-	 
-   
+	    
   render() {
    const { numCols, numRows } = this.props;
 	  //aqui calcula o tamanho do div "camera em funcão das colunas"
@@ -365,22 +585,21 @@ Camera.propTypes = {
    // onWillMount: PropTypes.func.isRequired,
   }
 
-
-
-
 class WorldContainer extends React.Component {
 		
-
 		
 		render() {
-					var _this = this;
+			var _this = this;
+			console.log("no WordContaniner " + JSON.stringify(store.getState()));
 			
-			 const worldWidth = -20 //level.width(state);
-			 const worldHeight = -20//level.height(state);
+			 const worldWidth = 50 //level.width(state);
+			 const worldHeight = 80//level.height(state);
+			 //player localization state....
+			 const playerCol = 30//player.getCol(state);
+			 const playerRow = 30//player.getRow(state);
 
-			 const playerCol = 10//player.getCol(state);
-			 const playerRow = 10//player.getRow(state);
-
+			 _this.col = calcCoord(worldWidth, CAM_COLS, playerCol);
+			 _this.row = calcCoord(worldHeight, CAM_ROWS, playerRow);
 			
 			function calcCoord(worldDim, camDim, playerCoord) {
 				  // Number of units that are offscreen for this x or y dimension.
@@ -412,14 +631,11 @@ class WorldContainer extends React.Component {
 					return ;
 					});	*/
 					var ret = Math.max(Math.min(minCoord, maxCoord), minCoord) ;
-					console.log(ret)
+					
 				  return ret;	 
 			   
 	 			}
-			
-				 
-			 _this.col = calcCoord(worldWidth, CAM_COLS, playerCol);
-			 _this.row = calcCoord(worldHeight, CAM_ROWS, playerRow);
+						 
 			
 			return (
 			<World 
@@ -436,22 +652,28 @@ class WorldContainer extends React.Component {
 class World extends React.Component {
 	
 	 render() {
+		 
 			const { col, row, children } = this.props;
-				 const widthTemp = (PX_PER_COL * col) +"px";  
-				 const heightTemp = (PX_PER_ROW * row)+ "px";	
+		 	//calc the inicial offset values 
+		 	//positioning the map on center of the camera
+			const leftTemp = (PX_PER_COL * col) +"px";  
+			const topTemp = (PX_PER_ROW * row)+ "px";	
 
 			const style = {
-				height: heightTemp,
-				width: widthTemp,
-				backgroundColor: "red"
+				top: topTemp,
+				left: leftTemp
+			
 				
 				} ;
+		 
 
+		 	console.log(style);
 			const className = 'world !hasEmoji';
 			return (
 			  <div className={className} style={style}>
-
-				
+					<EntitiesContainer/>
+					<GroundsContainer/>					
+					{children}
 			  </div>
 			);
   }
@@ -464,12 +686,116 @@ World.propTypes = {
 
 }
 
-class GroundContainer extends React.Component {
+class GroundsContainer extends React.Component {
 	
+	render() {
+		
+		
+		return (
+			
+			<Tiles 
+				tiles={GROUNDS} 
+				block="ground"/>
+			
+		)
+		
+	}
 	
 }
 
- class Header  extends React.Component {
+class EntitiesContainer extends React.Component {
+	
+	render(){
+		
+		
+		 return (
+			 <Tiles 
+			 	tiles={ENTITIES}
+			 	block= 'entity'/>
+    		
+  		);
+	}
+	
+}
+
+class Player extends React.Component {
+	
+	isMoveKey(key) {
+    return arrowKeys.has(key);
+  }
+
+  onArrowKeyDown(key, e) {
+    e.preventDefault();
+    this.props.onMove(key);
+  }
+
+  render() {
+    const { col, row, direction, type } = this.props;
+    const attrs = {
+      row,
+      col,
+      type,
+      block: 'entity',
+		//aqui tem que acertar
+      className: classNames({
+        'flipped--x': direction === 'right'
+      })
+    };
+    return (
+      <Keyboard
+        keyFilter={this.isMoveKey}
+        onKeyDown={this.onArrowKeyDown}
+      >
+        <Tile {...attrs} />
+      </Keyboard>
+    );
+  }
+	
+}
+
+Player.propTypes = {
+    type: React.PropTypes.string.isRequired,
+    col: React.PropTypes.number.isRequired,
+    row: React.PropTypes.number.isRequired,
+    direction: React.PropTypes.string.isRequired,
+    onMove: React.PropTypes.func.isRequired
+  }
+
+class PlayerContainer  extends React.Component {
+
+	
+	render () {
+		let state = store.getState();
+		//let col = state.player.col;
+		console.log("saco");
+		//get the actual cordnates from the model for level and player
+  		const colPlayer =this.state.player.col;
+  		const rowPlayer = player.getRow(state);
+  		const directionPlayer = player.getDirection(state);
+		 //define the ground type where the player is from the current level
+  		const groundTypeLevel = level.groundAt(col, row, state).get('type');
+  		const typeGround = groundToType[groundType] || 'person';
+		
+		
+		
+	return (
+	
+		  <Player
+			type = {groundTypeLevel}
+			col = {colPlayer}
+			row = {rowPlayer}
+			direction = {directionPlayer}
+		  />
+		
+	
+	);
+		  
+	}
+
+}
+
+ 						   							   
+class Header  extends React.Component {
 		
 	render () {
 		return (
@@ -479,8 +805,8 @@ class GroundContainer extends React.Component {
 				bsSize="large"
 				id="Header"> 
 					<h1> React Roguelike </h1>
-					<h3> Kill the KING at Dungeon 4 </h3>
-				<Col md={11}>
+					<h3> Kill the KING!!! </h3>
+				<Col md={9}>
 					<form> 
 						<FormGroup 
 							controlid="gameStatus" 
@@ -512,6 +838,19 @@ class GroundContainer extends React.Component {
 									</div>
 							</Col>
 							
+								<Col
+								componentClass={ControlLabel} 
+								sm={2}>
+									Habilities
+						
+									<div>
+										<span className="entity entity--boots"/> 
+										<span className="entity entity--sunglasses"/> 
+										<span className="entity entity--speedboat"/> 
+										<span className="entity entity--silverware"/> 
+										
+									</div>
+							</Col>
 					
 							<Col 
 								componentClass={ControlLabel} 
@@ -546,16 +885,7 @@ class GroundContainer extends React.Component {
 								/>
 							</Col>
 							
-							<Col 
-								componentClass={ControlLabel} 
-								sm={2}>
-									Dungeon
-								<FormControl
-									id="Dungeon"
-									type="text"
-									placeholder="Large text"
-								/>
-							</Col>
+							
 								
 						</FormGroup>
 					</form>
@@ -595,7 +925,7 @@ class Footer  extends React.Component {
 class GameBoard extends React.Component {
 	
 	render () {
-		
+		alert ("FINALMENTE");
 		return (
 			<Col 
 				md={12} 			
@@ -603,9 +933,12 @@ class GameBoard extends React.Component {
 				bsSize="large"
 				id="GameBoard">
 				<div className ="game">
-					<Camera numCols={30} numRows={20}/>	
-					<WorldContainer >
+					<Camera numCols={30} numRows={20}>	
+					<WorldContainer>
+						<PlayerContainer>
+						</PlayerContainer>
 					</WorldContainer>
+					</Camera>
 				</div>
  			</Col>
 		 
@@ -614,21 +947,105 @@ class GameBoard extends React.Component {
 	
 }
 
-class Controler extends React.Component {
-	constructor() {
-		super();
-		this.state = {
+
+class GameBoardContainer extends React.Component  {
+		render() {
 			
-		};		
-		
-	};
+			const { connect } = ReactRedux;	
+			var _this = this;
+			const props = this.props;
+			const { store } = this.context;
+			const state = store.getState();
+			console.log(JSON.stringify(state));
+			//aqui eu mapeio as proriedades que o componente vai usar	
+			const  mapStateToProps = (state)  =>{
+				return {
+
+						numCols: CAM_COLS,
+						numRows: CAM_ROWS
+					};
+			}
+
+			const mapDispatchToProps = (dispatch) => {
+				return {
+					/*onWillMount() {
+						dispatch(toChangeLevel(1));
+					}*/
+				};
+			};
+
+
+			const conn = connect(
+					mapStateToProps,
+					mapDispatchToProps
+				)(GameBoard); 
+
+
+			var connT = conn;
+			
+			return null
 	
-	render () {
+	}
+
+	
+}
+
+class Controler extends React.Component {
+	
+
+	render() {
+		
+		//*********************************************************************
+
+//redux area 
+
+
+	const { Provider } = ReactRedux;
+
+	const {  createStore:createReduxStore } = Redux;
+
+	//inicial state 
+	const initialState = Immutable.fromJS({
+
+	  router: null,
+	  // level: null,
+	  numTapes: 0,
+	  deaths: 0,
+	  time: 5 * 60,
+	  powerups: [],
+	  health: 4,
+	  hasWon: false,
+	  player: {
+		 row: 30,
+		 col: 30,
+		direction: 'left'
+	  }
+	});
+	//aqui vou criar os reducers para cada uma das açoes
+	const reducer = (state = initialState, action) => {
+
+
+	  return state;
+
+	};
+	//aqui  paço o obijeto criado como createReduxStore para o comum createStore 
+	//nao sei porque ele faz assim.... 
+	//const createStore = () =>  createReduxStore(reducer);
+
+	//const store = createStore();
+
+
+//*********************************************************************
+
+//end of redux area 
+			
 		return (
 			<Grid fluid>
-			<Header/>
-		 	<GameBoard/>
-			<Footer/>
+				<Header/>
+				<Provider store={createReduxStore(reducer)}>
+		 			<GameBoardContainer/>
+				</Provider>
+				<Footer/>
 			</Grid>
 		)
 	}

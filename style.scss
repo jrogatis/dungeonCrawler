@@ -29,13 +29,19 @@ $navbarHeight: 40px;
 					//font-family: 'Segment7Standard';
 				label{
 					font-size: 15px;
-					text-align: right;
-
+					text-align: center;
+					input{
+						text-align: center;
+						font-size: 20px;
+						}
 				}
+				
+				
 			}
 
 		div#GameBoard {
 
+			
 				min-height: 600px;
 				background-color: darkgreen;
 

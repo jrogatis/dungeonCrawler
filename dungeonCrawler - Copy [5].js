@@ -366,7 +366,7 @@ const CurrentHealth = (
 
 const CurrentHealthConainer = connect(
 	mapStateToCurrentGameStatsProps
-)(CurrentHealth);
+)(CurrentHealth)
 
 const CurrentLevel = (
 	props
@@ -389,7 +389,7 @@ const CurrentLevel = (
 
 const CurrentLevelContainer = connect(
 	mapStateToCurrentGameStatsProps
-)(CurrentLevel);
+)(CurrentLevel)
 
 const CurrentAttack = (
 	props
@@ -411,7 +411,7 @@ const CurrentAttack = (
 
 const CurrentAttackContainer = connect(
 	mapStateToCurrentGameStatsProps
-)(CurrentAttack);
+)(CurrentAttack)
 
 const nextLevel = (
 	props
@@ -434,284 +434,14 @@ const nextLevel = (
 
 const CurrentNextLevelContainer = connect(
 	mapStateToCurrentGameStatsProps
-)(nextLevel);
+)(nextLevel)
 
 
 //end game stats
 /*------------------------------------------------------------------------*/
-/*------------------------------------------------------------------------*/
-//map generator
-const MapBuilder = () => {
-	
-  	
 
-	var roomNumber = 0;
 
-	const getPossibleCorridors = (
-		room
-	) =>{
 
-		let possibles = [];
-		let newY2 = room.y2 + 1;
-		let type;
-		let neighbourY;
-
-		for (var y = room.y - 1; y <= newY2; y++) {
-
-		  if (y >= room.y && y <= room.y2) {
-			possibles.push({
-			  x: room.x - 1,
-			  y: y,
-			  type: 'left',
-			  neighbour: {
-				x: room.x - 2,
-				y: y,
-			  }
-			});
-			possibles.push({
-			  x: room.x2 + 1,
-			  y: y,
-			  type: 'right',
-			  neighbour: {
-				x: room.x2 + 2,
-				y: y,
-			  }
-			});
-			continue;
-		  }
-		  type = 'top';
-		  neighbourY = y - 1;
-		  if (y === newY2) {
-			type = 'bottom';
-			neighbourY = y + 1;
-		  }
-		  for (var x = room.x; x <= room.x2; x++) {
-			possibles.push({
-			  x: x,
-			  y: y,
-			  type: type,
-			  neighbour: {
-				x: x,
-				y: neighbourY
-			  }
-			});
-		  }
-		}
-		return possibles;
-	  };
-
-	const checkRoomPosition = (
-		room
-	) =>{
-		var maxX = MapConfig.width - 1;
-		var maxY = MapConfig.height - 1;
-		return room.x >= 1 && room.y >= 1 && room.y2 + 1 < maxY && room.x2 + 1 < maxX;
-	  };
-
-	const addRoom = (
-		map, 
-		room
-	  ) =>{
-		var right = room.x + room.width;
-		var bottom = room.y + room.height;
-		for (var y = room.y; y <= bottom; y++) {
-		  for (var x = room.x; x <= right; x++) {
-			map[y][x] = MapConfig.tileTypes.floor;
-			map[y][x] = roomNumber;
-		  }
-		}
-		roomNumber++;
-	  };
-
-	const addCorridor = (
-		map,
-		corridor,
-		length,
-		direction
-	) => {
-		var x = corridor.x;
-		var y = corridor.y;
-		while(length > 0 ) {
-		  map[y][x] = MapConfig.tileTypes.floor;
-		  y += direction.y;
-		  x += direction.x;
-		  length--;
-		}
-	  };
-	
-	const _seekRoomNextCorridor = (
-		map,
-		rooms,
-		corridor
-	) => {   
-		if ( rooms.length >= MapConfig.max_rooms ) {
-		  return;
-		}
-		var corridorDirection;   
-		var newRoom = new RandomRoom();
-		var  diffY = Math.floor(Math.random() * newRoom.height);
-		var  diffX = Math.floor(Math.random() * newRoom.width);
-		var corridorLength = Math.floor(Math.random() * 3)  + 2;
-		
-		  switch (corridor.type) {
-			case 'left':
-			  newRoom.x = corridor.x - newRoom.width - corridorLength;
-			  newRoom.x2 = corridor.x - corridorLength;
-			  newRoom.y = corridor.y - diffY;
-			  newRoom.y2 = newRoom.y + newRoom.height;
-			  corridorDirection = {x: -1, y: 0};
-			  break;
-			case 'right':
-			  newRoom.x = corridor.x + corridorLength;
-			  newRoom.x2 = newRoom.x + newRoom.width;
-			  newRoom.y = corridor.y - diffY;
-			  newRoom.y2 = newRoom.y + newRoom.height;
-			  corridorDirection = {x: +1, y: 0};
-			  break;
-			case 'top':
-			  newRoom.x = corridor.x - diffX;
-			  newRoom.x2 = newRoom.x + newRoom.width;
-			  newRoom.y = corridor.y - newRoom.height - corridorLength;
-			  newRoom.y2 = corridor.y - corridorLength;
-			  corridorDirection = {x: 0, y: -1};
-			  break;
-			case 'bottom':
-			  newRoom.x = corridor.x - diffX;
-			  newRoom.x2 = newRoom.x + newRoom.width;
-			  newRoom.y = corridor.y + corridorLength;
-			  newRoom.y2 = newRoom.y + newRoom.height;
-			  corridorDirection = {x: 0, y: +1};
-			  break;
-		  }
-
-		  if (checkRoomPosition(newRoom) && !newRoom.intersectRoomList(rooms)) {
-			rooms.push(newRoom);
-			addRoom(map, newRoom);
-			addCorridor(map, corridor, corridorLength, corridorDirection);
-			_seekNextRoom(map, rooms, newRoom);
-		  }
-  };
-
-	const seekRooms = (
-		map,
-		rooms
-	) => {
-		//Create a new room
-		var room = new RandomRoom();
-
-		addRoom(map, room);
-		rooms.push(room);
-		_seekNextRoom(map, rooms, room);
-		var key = 0;
-		while (rooms.length < MapConfig.min_rooms && key < rooms.length) {
-		  _seekNextRoom(map, rooms, rooms[key]);
-		  key++;
-		}
-	  };
-	
-	const getFloorsPosition = (map) => {
-		var positions = [];
-		for ( var y in map ) {
-		  for ( var x = 0; x < map[y].length; x++ ) {
-			if ( map[y][x] == MapConfig.tileTypes.floor || !isNaN(map[y][x]) ) {
-			  positions.push({y: y, x:x});          
-			}
-		  }
-		}
-    	return positions;
-  	};
-	
-	const placeItems = (
-		map,
-		items
-	) => {
-		var positions = shuffleArray(getFloorsPosition(map));   
-		var orderedItems = shuffleArray(items);
-		var position;
-		for ( var key in orderedItems) {
-		  position = positions.shift();
-		  map[position.y][position.x] = orderedItems[key].type;
-		  orderedItems[key].position = position;
-		}
-  };
-	
-	this.build = (items) => {
-		var map = newMap();    
-		var rooms = [];
-		seekRooms(map, rooms);
-		placeItems(map, items);
-		return {map: map, rooms: rooms};
-	  };
-			
-
-};
-
-const buildItems = (level) => {
-    var items = [];
-    var config = GameLevels[level];
-    var qtyEnemies = RandomIntFromArray(config.enemies.qty_range);
-    var qtyRecovery = RandomIntFromArray(config.recovery.qty_range);
-
-    for ( var key = 0; key < qtyEnemies; key++ ) {
-      items.push({
-        type: 'EN',
-        data: {          
-          level: RandomIntFromArray(config.enemies.level_range)
-        }
-      });
-    }
-    for ( var key = 0; key < qtyRecovery; key++ ) {
-      items.push({
-        type: 'RE',
-        data: {          
-          value: RandomIntFromArray(config.recovery.value_range)
-        }
-      });
-    }
-    var weaponKey = Math.floor(Math.random() * config.weapons.length);
-    items.push({
-      type: "WP",
-      data: {
-        weapon: config.weapons[weaponKey]
-      }
-    });
-    if ( typeof config.boss === 'undefined' ) {
-      items.push({
-        type:"LU"        
-      });
-    }
-    items.push({
-      type: "PL",//Player
-      data: {
-        level: 1,
-        health: 100,
-        weapon: 'PE'
-      }
-    });
-    return items;
-  }
-
-//end of map generator
-/*------------------------------------------------------------------------*/
-/*------------------------------------------------------------------------*/
-
-const GameBoard = () =>{
-
-		return (
-			<Col 
-				md={12} 			
-				componentClass={Well} 
-				bsSize="large"
-				id="GameBoard">
-				<div className ="game">					
-				</div>
- 			</Col>
-		 
-		)
-}
-	
-
-/*------------------------------------------------------------------------*/
 
 const Header = () => {
 
@@ -741,7 +471,7 @@ const Header = () => {
 		</Col>
 
 	);
-};
+}
 const Footer = () =>  {
 	
 		return (
@@ -759,19 +489,16 @@ const Footer = () =>  {
 			</Col>
 		 
 		);
-};	
+};
+
+	
 const Controler = () => {
 	const { createStore } = Redux;
-	let items = buildItems(1);
-	const mapBuilder = new MapBuilder(items);
-	
-	//console.log(map)
 		return (
 			<Provider store = {createStore(dcApp)}>
 				<Grid fluid>
 					<Header/>
-					<GameBoard/>
-					<Footer/>				
+					<Footer/>
 				</Grid>	
 			</Provider>	
 			

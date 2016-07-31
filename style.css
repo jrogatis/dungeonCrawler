@@ -13,7 +13,10 @@ p, ol, ul, dl, dt, dd, li {
   text-align: center; }
   #mountNode div #Header label {
     font-size: 15px;
-    text-align: right; }
+    text-align: center; }
+    #mountNode div #Header label input {
+      text-align: center;
+      font-size: 20px; }
 #mountNode div div#GameBoard {
   min-height: 600px;
   background-color: darkgreen; }
