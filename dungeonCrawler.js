@@ -177,6 +177,19 @@ const GameLevels = {
 //defintions of size of col and row	
  const PX_PER_COL = 25;
  const PX_PER_ROW = 25;	
+ const CAM_COLS   = 800 / PX_PER_COL;
+ const CAM_ROWS   = 600 / PX_PER_ROW;
+
+//utils
+// set the 
+const clamp =(min,max,num) =>{
+	const temp = (min,max,num) => {
+		return  Math.max(Math.min(num, max), min)
+	} 
+	let curryed = _.curry(temp) 
+
+	return curryed
+}
 /*------------------------------------------------------------------------*/
 //map generator
 
@@ -938,8 +951,8 @@ const Word = (
 	
     //calc the inicial offset values 
 	//positioning the map on center of the camera
-	const left = (PX_PER_COL *  props.playerCol) +"px";  
-	const top = (PX_PER_ROW *  props.playerRow)+ "px";	
+	const left = (PX_PER_COL *  props.MapCoordToOffSetCol) +"px";  
+	const top = (PX_PER_ROW *  props.MapCoordToOffSetRow)+ "px";	
 	
 	const style = {
 				top: top,
@@ -980,12 +993,49 @@ const mapStateToWordProps =(
 	let playerCol = player.get('col');
 	let playerRow = player.get('row');
 	
+	console.log(worldWidth)
+	console.log(CAM_COLS)
+	console.log(playerCol)
+	
+	const  CoordToOffSet = (worldDim, camDim, playerCoord) => {
+				  // Number of units that are offscreen for this x or y dimension.
+				  const unitsOutsideCamera = worldDim - camDim;
+				  // Ideal number of units around the player. This puts the player
+				  // in the center of the camera.
+				  const unitsAroundPlayer = camDim / 2;
+				  // The world is being translated via `top` and `left`, so we never
+				  // want it to be greater than 0 or else there'd be empty space shown
+				  // in the top or left corner.
+				  const maxCoord = 0;
+				  // The world gets translated in the opposite direction that the
+				  // player is moving, so the furthest it can go in the opposite
+				  // direction without showing beyond the world's bounds is the
+				  // number of units outside of the camera, but in the negative.
+				  const minCoord = -unitsOutsideCamera;
+				  // This is the ideal number of units to move the world; it tries
+				  // to center the player within the camera by offsetting how many
+				  // camera units are on either side of the player. Again, it's the
+				  // negative value since the world translates in the opposite direction
+				  // of the player.
+				  const coord = -(playerCoord - unitsAroundPlayer);
+				  // Finally, to ensure that we don't show any gaps between the world's
+				  // bounds and the camera, we `clamp` `coord` within those bounds.
+
+					//pelo que entendi aqui ele junta as codernadas do mapa achando o 
+					// restringindo pelas bordas do mapa
+					
+				   return clamp(minCoord, maxCoord, coord);
+			   
+	 			}
+						 
+	
+	
+	
+	
 	return {
-		
-		worldWidth: worldWidth,
-		worldHeight: worldHeight,
-		playerCol: playerCol,
-		playerRow: playerRow
+
+		MapCoordToOffSetCol: CoordToOffSet(worldWidth,CAM_COLS,playerCol),
+		MapCoordToOffSetRow: CoordToOffSet(worldHeight,CAM_ROWS,playerRow)
 		
 	}
 	
