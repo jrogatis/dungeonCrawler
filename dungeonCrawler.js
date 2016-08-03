@@ -27,6 +27,7 @@ const { Component} = React;
 const { Provider, connect } = ReactRedux;
 const {combineReducers} = Redux;
 
+
 class FontAwesome extends Component{
 	constructor(props) {
 		super(props);
@@ -123,8 +124,8 @@ const MapConfig = {
 		width: {min: 8, max: 18}
 	  },
 	  tileTypes: {
-		wall: 'W',
-		floor: 'F'
+		wall: 'GG',
+		floor: 'GK'
 	  }
 	};
 	
@@ -180,16 +181,84 @@ const GameLevels = {
  const CAM_COLS   = 800 / PX_PER_COL;
  const CAM_ROWS   = 600 / PX_PER_ROW;
 
+ const grounds = {
+  GA: { type: 'grass' },
+  GB: { type: 'path' },
+  GC: { type: 'water' },
+  GD: { type: 'sand' },
+  GE: { type: 'forest' },
+  GF: { type: 'road' },
+  GG: { type: 'sidewalk' },
+  GH: { type: 'sky' },
+  GI: { type: 'roadline' },
+  GJ: { type: 'doorway' },
+  GK: { type: 'snow' },
+};
+
+/*------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------*/
 //utils
 // set the 
 const clamp =(min,max,num) =>{
 	const temp = (min,max,num) => {
 		return  Math.max(Math.min(num, max), min)
 	} 
-	let curryed = _.curry(temp) 
+	let curryed = _.curry(temp);
+	
+	console.log(curryed(min,max,min))
 
-	return curryed
+	return curryed(min,max,min);
 }
+
+const  gridColsToPx = (cols) =>{
+  return `${PX_PER_COL * cols}px`;
+};
+
+const gridRowsToPx = (rows) => {
+  return `${PX_PER_ROW * rows}px`
+};
+
+const gridCoordsToOffsetStyle = (row, col) => {
+  return {
+    top: gridRowsToPx(row),
+    left: gridColsToPx(col),
+  };
+};
+
+const gridCoordsToDimStyle = (numCols, numRows) => {
+  return {
+    height: gridRowsToPx(numRows),
+    width: gridColsToPx(numCols),
+  };
+};
+
+const hasEmoji = () =>{
+	
+	return navigator.platform === 'MacIntel';
+};
+
+const splitter = /\s+\|?\s*/;
+
+const createTile = _.curry((defs, row, col, shortType) => {
+  return (
+    (shortType in defs) ?
+    { ...defs[shortType], row, col, shortType } :
+    null
+  );
+});
+
+const parseLevelGrid = _.curry((defs, data) => {	
+  return data
+    .map((row) => row.split(splitter))
+    .map((row, rowIdx) => {
+      const createItem = _.rearg(createTile(defs, rowIdx), 1, 0);
+      return row.map(createItem);
+    });
+});
+
+const parseGrounds = parseLevelGrid(grounds);
+//const parseEntities = parseLevelGrid(entities);
+
 /*------------------------------------------------------------------------*/
 //map generator
 
@@ -361,7 +430,7 @@ class MapBuilder  {
 		for (var y = room.y; y <= bottom; y++) {
 		  for (var x = room.x; x <= right; x++) {
 			map[y][x] = MapConfig.tileTypes.floor;
-			map[y][x] = this.roomNumber;
+			//map[y][x] = this.roomNumber;
 		  }
 		}
 		this.roomNumber++;
@@ -475,7 +544,7 @@ class MapBuilder  {
 		room = room.build();
 		this.addRoom(map, room);
 		rooms.push(room);
-		console.log("rooms no seekRooms" + JSON.stringify(rooms));		
+		//console.log("rooms no seekRooms" + JSON.stringify(rooms));		
 		this._seekNextRoom(map, rooms, room);
 		let key = 0;
 		while (rooms.length < MapConfig.min_rooms && key < rooms.length) {
@@ -511,13 +580,13 @@ class MapBuilder  {
   };
 	
 	
-	
-	build  (items) {
-		console.log("build");
+	//build  (items) {
+	build  () {
+		
 		let map = this.newMap();  	
 		let rooms = [];
 		this.seekRooms(map, rooms);
-		this.placeItems(map, items);
+		//this.placeItems(map, items);
 		
 		return {map: map, rooms: rooms};
 	  }
@@ -570,14 +639,15 @@ const buildItems = (level) => {
 
 const newBoard = () => {
     var builder = new MapBuilder();
-    var items = buildItems(1);
-	//console.log("newgame");
-    var data = builder.build(items);
+  	 
+   // var data = builder.build(items);
+    var data = builder.build();
     return {
       map_board: data.map,
       rooms: data.rooms
     };
-  }  
+  };  
+
 
 //end of map generator
 /*------------------------------------------------------------------------*/
@@ -632,6 +702,7 @@ const GameInitialState = Immutable.fromJS({
 					
 });
 
+
 const game = (state,action) => {
 					
 	switch (action.type) {
@@ -660,6 +731,26 @@ const activeWeaponHabilities = (state,action) => {
 		default:
 			return state
 		}		
+};
+
+const Map = (
+	state= newBoard(),
+	action
+) => {
+	
+	let Map = state.map_board;
+	let newMap = []
+		Map.map((row,rIndex)  => {		
+			let newRow = []
+			row.map((tile, coll)=>{
+				newRow.push(createTile(grounds,rIndex, coll, tile));
+			});
+			newMap.push(newRow);
+		})
+	
+		state.map_board = newMap;
+	return state
+	
 };
 		
 //reduder for activeWeapons 
@@ -695,7 +786,8 @@ const mapConfiguration = (
 const dcApp = combineReducers({
     WeaponsHabilities,
 	gameStats,
-	mapConfiguration
+	mapConfiguration,
+	Map
 	
 });
 
@@ -920,71 +1012,129 @@ const CurrentNextLevelContainer = connect(
 /*------------------------------------------------------------------------*/
 // word area
 
-const TilesRow = (row) => {
+
+const Tile = (
+	props
+) => {
+
+	const { block, col, row, type, className } = props;
+	let blockType =  `${block}--${type}`;
+	let classNames = className + " " + 'tile ' + block + " " +  blockType
+    const attrs = {
+      ...props,
+      style: gridCoordsToOffsetStyle(row, col),
+      className: classNames
+    };
+    return (
+		<div {...attrs} />
+	);
+  }
+
+const TilesRow = (
+	props
+) => {
+	const { tiles } = props
 	
+	const renderTile = (
+		tile
+	) => {
+		const { block } = props;
+    	const { type, row, col } = tile;
+		let key = type + '-' + row + '-' + col;	
+		return !tile ? null : (
+		  <Tile
+			key={key}
+			block={block}
+			col={col}
+			row={row}
+			type={type}
+		  />
+		);
+
+	}
 	
+	return (
+      <div className="tiles__row">
+        {tiles.map(renderTile)}
+      </div>
+    );
+};
+
+
+const Tiles = (
+	props
+) => {	
+	
+	const renderTilesRow = (row, i) =>{
+		
+		 const { block } = props;
+    		return (
+				<TilesRow
+        			key={i}
+        			block={block}
+        			tiles={row}
+      				/>
+			);
+	}
+			 
+		    
+	const { tiles } = props;
+	
+	return (
+	  <div className="tiles">
+			{tiles.map(renderTilesRow)}
+	  </div>
+	);
+	
+};
 
 
 
+const mapStateToGroundProps = (
+	state
+) => {
+	
+	let MapBoard = state.Map.map_board;
+	
+  return {
+    block: 'ground',
+    tiles: MapBoard
+  };
 };
 
 
 //render the ground tiles first
-const GroundContainer =() => {
-	
-	
-	
-};
-
+const GroundContainer = connect(
+  mapStateToGroundProps
+)(Tiles);
 
 
 const Word = (
 	props	
 ) => {
-	//load the map from a object...
-	//not so much react redux... but is immutable... 
-	//for each level... 
- 	let Map = newBoard();
-	let MapRows = [];
-	let rCount = 0
-	const className = 'world !hasEmoji';
+	
+	const className = 'world ';
 	
     //calc the inicial offset values 
 	//positioning the map on center of the camera
-	const left = (PX_PER_COL *  props.MapCoordToOffSetCol) +"px";  
-	const top = (PX_PER_ROW *  props.MapCoordToOffSetRow)+ "px";	
 	
-	const style = {
-				top: top,
-				left: left,
-				
-	};
-		 
-	//for each row at mapBoard 
-	Map.map_board.map(row=> {
-		
-		MapRows.push(
-			<div key={rCount}>
-				{row}
-			</div>
-		)
-		rCount++;
-	})
-	
-	
+	const style  = gridCoordsToOffsetStyle(props.MapCoordToOffSetRow,props.MapCoordToOffSetCol)	;	
+	//const style  =  null
+
 	return (
 		<div className={className} style={style}>
-			{MapRows}
+			<GroundContainer /> 
 		</div>	
-	)
+	);
 };
 
-//will need map the 
+
 const mapStateToWordProps =(
 	state
 )=>{
 	let mapConfig = state.mapConfiguration;
 	let gameStats = state.gameStats;
+	let map = state.map;
 	
 	let worldWidth = mapConfig.get('width');
 	let worldHeight = mapConfig.get('height');
@@ -993,9 +1143,7 @@ const mapStateToWordProps =(
 	let playerCol = player.get('col');
 	let playerRow = player.get('row');
 	
-	console.log(worldWidth)
-	console.log(CAM_COLS)
-	console.log(playerCol)
+	
 	
 	const  CoordToOffSet = (worldDim, camDim, playerCoord) => {
 				  // Number of units that are offscreen for this x or y dimension.
@@ -1026,16 +1174,14 @@ const mapStateToWordProps =(
 					
 				   return clamp(minCoord, maxCoord, coord);
 			   
-	 			}
+	 			};
 						 
-	
-	
-	
 	
 	return {
 
 		MapCoordToOffSetCol: CoordToOffSet(worldWidth,CAM_COLS,playerCol),
-		MapCoordToOffSetRow: CoordToOffSet(worldHeight,CAM_ROWS,playerRow)
+		MapCoordToOffSetRow: CoordToOffSet(worldHeight,CAM_ROWS,playerRow),
+		map: map
 		
 	}
 	
