@@ -125,7 +125,8 @@ const MapConfig = {
 	  },
 	  tileTypes: {
 		wall: 'GG',
-		floor: 'GK'
+		floor: 'GK',
+		corridor: 'GF'
 	  }
 	};
 	
@@ -311,7 +312,6 @@ const blocksUnless = (hasAbility) => ({
 const is = _.curry((prop, val, entity) => entity[prop] === val);
 
 const typeIs = is('type');
-
 
 const entities = {
   '00': { type: 'empty' },
@@ -576,7 +576,7 @@ class MapBuilder  {
 		var x = corridor.x;
 		var y = corridor.y;
 		while(length > 0 ) {
-		  map[y][x] = MapConfig.tileTypes.floor;
+		  map[y][x] = MapConfig.tileTypes.corridor;
 		  y += direction.y;
 		  x += direction.x;
 		  length--;
@@ -684,7 +684,7 @@ class MapBuilder  {
 		}
 	  };
 	
-	 getFloorsPosition  (map)  {
+	 /*getFloorsPosition  (map)  {
 		var positions = [];
 		for ( var y in map ) {
 		  for ( var x = 0; x < map[y].length; x++ ) {
@@ -694,9 +694,9 @@ class MapBuilder  {
 		  }
 		}
     	return positions;
-  	};
+  	};*/
 	
-	 placeItems  (
+	 /*placeItems  (
 		map,
 		items
 	)  {
@@ -708,7 +708,7 @@ class MapBuilder  {
 		  map[position.y][position.x] = orderedItems[key].type;
 		  orderedItems[key].position = position;
 		}
-  };
+  };*/
 	
 	
 	//build  (items) {
@@ -788,38 +788,42 @@ const  getFloorsPosition = (map) => {
 	
 const	placeItems = (
 		Map,
+		Rooms,
 		items
 	)  => {
-		//console.log(items);
-		//let positions = shuffleArray(getFloorsPosition(Map));   
-		let orderedItems = shuffleArray(items);
-		//console.log(JSON.stringify(Map));
+		//console.log(Rooms);
 		
-		//let position;
-		//let Items = [];
-		//let item = [];
-	
-		/*for ( let key in orderedItems) {
-		  position = positions.shift();
-			item[position.y] = [];
-			item[position.y][position.x] = orderedItems[key].type;
-		  //map[position.y][position.x] = orderedItems[key].type;
-		  orderedItems[key].position = position;
-			items.push(item)
-		}*/
+		let orderedItems = shuffleArray(items);
+		let possiblePositions = getFloorsPosition(Map);
+		possiblePositions = shuffleArray(possiblePositions)
+		//aqui para cada possibilidade sorteio uma para colocar um item... 
+		//console.log(JSON.stringify(fp));
+		//console.log( "shuffed " + JSON.stringify(shuffleArray(fp)));
+		//console.log(JSON.stringify(Map));
 		let entities = [];
-		Map.map((row, yIndex)=>{
-			let entitiesRow = []
-			row.map((cell, xIndex)=>{
-				if (Map[yIndex][xIndex] === MapConfig.tileTypes.floor) {
-					entitiesRow.push('BL');
-				}  else {
-					entitiesRow.push('');
-				};
-				
-			});
-			entities.push(entitiesRow);
-		});
+		//first bild the intere possible map...		
+					Map.map((row, yIndex)=>{
+						let entitiesRow = [];
+						row.map((cell, xIndex)=>{
+							/*if (Map[yIndex][xIndex] === MapConfig.tileTypes.floor &&
+								(entitiesRow[xIndex] !== undefined || 	entitiesRow[xIndex] !== 'BL')
+							   ) {
+								entitiesRow.push('BL');
+							}  else {
+								entitiesRow.push('');
+							};
+*/	
+								entitiesRow.push('');
+						});
+						entities.push(entitiesRow);
+					});
+	
+				//now put  each item on the map using the possiblePositions  suffled...
+				orderedItems.map((item, i) =>{
+					entities[possiblePositions[i].y][possiblePositions[i].x] = item.type;
+					
+					
+				})
 		
 		return entities
   };
@@ -829,7 +833,7 @@ const newBoard = () => {
     var builder = new MapBuilder();
    // var data = builder.build(items);
     var data = builder.build();
-	 let items = placeItems(data.map, buildItems(1));
+	 let items = placeItems(data.map, data.rooms, buildItems(1));
 	//console.log(JSON.stringify(items));	
     return {
       map_board: data.map,
@@ -981,7 +985,8 @@ const gameStats = (
 
 const mapConfiguration = (
 	state = Immutable.fromJS(MapConfig),
-	action) => {
+	action
+) => {
 		return state
 	
 };
@@ -1265,7 +1270,6 @@ const TilesRow = (
       </div>
     );
 };
-
 
 const Tiles = (
 	props
