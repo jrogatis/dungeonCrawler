@@ -21,7 +21,7 @@ const {
   td,
   Well,
   Glyphicon
-	
+
 } = ReactBootstrap;
 const { Component} = React;
 const { Provider, connect } = ReactRedux;
@@ -32,7 +32,7 @@ class FontAwesome extends Component{
 	constructor(props) {
 		super(props);
 	}
-	
+
 
   render () {
     let {
@@ -100,7 +100,7 @@ class FontAwesome extends Component{
   }
   }
 FontAwesome.propTypes = {
-	  
+
     border: React.PropTypes.bool,
 	className: React.PropTypes.string,
     fixedWidth: React.PropTypes.bool,
@@ -120,22 +120,23 @@ const MapConfig = {
 	  min_rooms: 20,
 	  max_rooms: 48,
 	  room: {
-		height: {min: 4, max: 14}, 
+		height: {min: 4, max: 14},
 		width: {min: 8, max: 18}
 	  },
 	  tileTypes: {
 		wall: 'GG',
 		floor: 'GK'
-	  }
+    },
+    corridorTiles: ['GA', 'GB', 'GF']
 	};
-	
+
 const GameLevels = {
 	  1: {
 		enemies: {
 		  qty_range: [10, 12],
 		  level_range: [1, 2]
 		},
-		weapons: ['SR'], 
+		weapons: ['SR'],
 		recovery: {
 		  qty_range: [10, 13],
 		  value_range: [15, 20]
@@ -167,17 +168,17 @@ const GameLevels = {
 		enemies: {
 		  qty_range: [17, 20],
 		  level_range: [2, 3]
-		},    
+		},
 		weapons: ['KA'],
 		boss: {
 		  level_range: [3, 5]
 		}
 	  }
 }
-	
-//defintions of size of col and row	
+
+//defintions of size of col and row
  const PX_PER_COL = 25;
- const PX_PER_ROW = 25;	
+ const PX_PER_ROW = 25;
  const CAM_COLS   = 800 / PX_PER_COL;
  const CAM_ROWS   = 600 / PX_PER_ROW;
 
@@ -198,13 +199,13 @@ const GameLevels = {
 /*------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------*/
 //utils
-// set the 
+// set the
 const clamp =(min,max,num) =>{
 	const temp = (min,max,num) => {
 		return  Math.max(Math.min(num, max), min)
-	} 
+	}
 	let curryed = _.curry(temp);
-	
+
 	console.log(curryed(min,max,min))
 
 	return curryed(min,max,min);
@@ -233,7 +234,7 @@ const gridCoordsToDimStyle = (numCols, numRows) => {
 };
 
 const hasEmoji = () =>{
-	
+
 	return navigator.platform === 'MacIntel';
 };
 
@@ -247,7 +248,7 @@ const createTile = _.curry((defs, row, col, shortType) => {
   );
 });
 
-const parseLevelGrid = _.curry((defs, data) => {	
+const parseLevelGrid = _.curry((defs, data) => {
   return data
     .map((row) => row.split(splitter))
     .map((row, rowIdx) => {
@@ -288,8 +289,8 @@ const RandomIntFromArray = (
 ) => {
   return RandomInt(arr[0], arr[1]);
 }
-		
-//this class detects if a room intersec another room 
+
+//this class detects if a room intersec another room
 class Room {
 	constructor (width, height, x, y) {
 		this.width = width;
@@ -298,13 +299,13 @@ class Room {
   		this.y = y;
   		this.x2 = x + width;
   		this.y2 = y + height;
-		
+
 	}
-	
-  intersectRoom (otherRoom) {    
+
+  intersectRoom (otherRoom) {
     if (otherRoom.x2 + 1 < this.x || otherRoom.x > this.x2 + 1) {
       return false;
-    } 
+    }
 
     if (otherRoom.y2 + 1 < this.y || otherRoom.y > this.y2 + 1) {
       return false;
@@ -325,19 +326,19 @@ class RandomRoom {
 	constructor () {
 		this.maxHeight = MapConfig.room.height.max;
 		this.width = this.minMax(MapConfig.room.width.max, MapConfig.room.width.min);
-		this.x = this.minMax(MapConfig.width - this.width, 0); 
+		this.x = this.minMax(MapConfig.width - this.width, 0);
 		this.height = this.minMax(this.maxHeight, MapConfig.room.height.min);
 		this.y = this.minMax(MapConfig.height - this.height, 0);
- 
+
   	};
- 	
+
    	minMax(min, max) {
     var rdm = Math.random() * (max - min + 1);
-	var temp =   Math.floor(rdm) + min; 
+	var temp =   Math.floor(rdm) + min;
     return temp;
   }
-	
-   	build() {  
+
+   	build() {
 	   return new Room(this.width, this.height, this.x, this.y);
    }
 };
@@ -346,7 +347,7 @@ class MapBuilder  {
 	constructor() {
 			this.roomNumber = 0;
 		}
-	
+
 	newMap () {
 			let map = [];
 			for (var y = 0; y < MapConfig.height; y++) {
@@ -357,7 +358,7 @@ class MapBuilder  {
 			}
 			return map;
 		  };
-	
+
 	 getPossibleCorridors(
 		room
 	) {
@@ -417,12 +418,12 @@ class MapBuilder  {
 		var maxX = MapConfig.width - 1;
 		var maxY = MapConfig.height - 1;
 		//se a posicao do novo quarto não ulrapassar os limites do mapa
-		//retorna true ...	
+		//retorna true ...
 		return room.x >= 1 && room.y >= 1 && room.y2 + 1 < maxY && room.x2 + 1 < maxX;
 	  };
 
 	 addRoom  (
-		map, 
+		map,
 		room
 	  ) {
 		let right = room.x + room.width;
@@ -444,31 +445,33 @@ class MapBuilder  {
 	)  {
 		var x = corridor.x;
 		var y = corridor.y;
+        var tileIndex = Math.floor(Math.random() * MapConfig.corridorTiles.length);
+        var tile = MapConfig.corridorTiles[tileIndex];
 		while(length > 0 ) {
-		  map[y][x] = MapConfig.tileTypes.floor;
+		  map[y][x] = tile;
 		  y += direction.y;
 		  x += direction.x;
 		  length--;
 		}
 	  };
-	
+
 	 _seekRoomNextCorridor  (
 		map,
 		rooms,
 		corridor
-	) {   
-		//if max of rooms ends...	
+	) {
+		//if max of rooms ends...
 		if ( rooms.length >= MapConfig.max_rooms ) {
 		  return;
 		}
-			
-		let corridorDirection;   
+
+		let corridorDirection;
 		let newRoom = new RandomRoom();
-		newRoom = newRoom.build()			
+		newRoom = newRoom.build()
 		let  diffY = Math.floor(Math.random() * newRoom.height);
 		let  diffX = Math.floor(Math.random() * newRoom.width);
 		let corridorLength = Math.floor(Math.random() * 3)  + 2;
-		
+
 		  switch (corridor.type) {
 			case 'left':
 			  newRoom.x = corridor.x - newRoom.width - corridorLength;
@@ -499,7 +502,7 @@ class MapBuilder  {
 			  corridorDirection = {x: 0, y: +1};
 			  break;
 		  }
-			
+
 		  if (this.checkRoomPosition(newRoom) && !newRoom.intersectRoomList(rooms)) {
 			rooms.push(newRoom);
 			this.addRoom(map, newRoom);
@@ -507,13 +510,13 @@ class MapBuilder  {
 			this._seekNextRoom(map, rooms, newRoom);
 		  }
   };
-	
+
 	  _seekNextRoom  (
 			map,
 			rooms,
 			room
 	) {
-    //Obter possiveis corredores 
+    //Obter possiveis corredores
 		let corridors = this.getPossibleCorridors(room).filter(function(item){
 			//para cada item ou seja possivel localização de um corredor
 			// pega o neighbour dele e checa se é valido... se não esta fora do mapa...
@@ -524,11 +527,11 @@ class MapBuilder  {
 		  }
 			// se o corredor for possivel então coloca no map como um wall.... extranho...
 		  return map[neigh.y][neigh.x] == MapConfig.tileTypes.wall;
-		}); 
-		//console.log("coridores no _seekNextRoom" + JSON.stringify(corridors));  
+		});
+		//console.log("coridores no _seekNextRoom" + JSON.stringify(corridors));
 		corridors = shuffleArray(corridors);
-		//console.log("corredores no _seekNextRoom depois do suffle" + JSON.stringify(corridors));  		
-		//para cada corredor tenha incluir um quarto    
+		//console.log("corredores no _seekNextRoom depois do suffle" + JSON.stringify(corridors));
+		//para cada corredor tenha incluir um quarto
 		for (var key in corridors) {
 			//console.log(key);
 		  this._seekRoomNextCorridor(map, rooms, corridors[key]);
@@ -544,7 +547,7 @@ class MapBuilder  {
 		room = room.build();
 		this.addRoom(map, room);
 		rooms.push(room);
-		//console.log("rooms no seekRooms" + JSON.stringify(rooms));		
+		//console.log("rooms no seekRooms" + JSON.stringify(rooms));
 		this._seekNextRoom(map, rooms, room);
 		let key = 0;
 		while (rooms.length < MapConfig.min_rooms && key < rooms.length) {
@@ -552,24 +555,24 @@ class MapBuilder  {
 		  key++;
 		}
 	  };
-	
+
 	 getFloorsPosition  (map)  {
 		var positions = [];
 		for ( var y in map ) {
 		  for ( var x = 0; x < map[y].length; x++ ) {
 			if ( map[y][x] == MapConfig.tileTypes.floor || !isNaN(map[y][x]) ) {
-			  positions.push({y: y, x:x});          
+			  positions.push({y: y, x:x});
 			}
 		  }
 		}
     	return positions;
   	};
-	
+
 	 placeItems  (
 		map,
 		items
 	)  {
-		var positions = shuffleArray(this.getFloorsPosition(map));   
+		var positions = shuffleArray(this.getFloorsPosition(map));
 		var orderedItems = shuffleArray(items);
 		var position;
 		for ( var key in orderedItems) {
@@ -578,16 +581,16 @@ class MapBuilder  {
 		  orderedItems[key].position = position;
 		}
   };
-	
-	
+
+
 	//build  (items) {
 	build  () {
-		
-		let map = this.newMap();  	
+
+		let map = this.newMap();
 		let rooms = [];
 		this.seekRooms(map, rooms);
 		//this.placeItems(map, items);
-		
+
 		return {map: map, rooms: rooms};
 	  }
 };//end of MAP
@@ -601,7 +604,7 @@ const buildItems = (level) => {
     for ( var key = 0; key < qtyEnemies; key++ ) {
       items.push({
         type: 'EN',
-        data: {          
+        data: {
           level: RandomIntFromArray(config.enemies.level_range)
         }
       });
@@ -609,7 +612,7 @@ const buildItems = (level) => {
     for ( var key = 0; key < qtyRecovery; key++ ) {
       items.push({
         type: 'RE',
-        data: {          
+        data: {
           value: RandomIntFromArray(config.recovery.value_range)
         }
       });
@@ -623,7 +626,7 @@ const buildItems = (level) => {
     });
     if ( typeof config.boss === 'undefined' ) {
       items.push({
-        type:"LU"        
+        type:"LU"
       });
     }
     items.push({
@@ -642,19 +645,19 @@ const  getFloorsPosition = (map) => {
 		for ( var y in map ) {
 		  for ( var x = 0; x < map[y].length; x++ ) {
 			if ( map[y][x] == MapConfig.tileTypes.floor || !isNaN(map[y][x]) ) {
-			  positions.push({y: y, x:x});          
+			  positions.push({y: y, x:x});
 			}
 		  }
 		}
     	return positions;
  };
-	
+
 const	placeItems = (
 		map,
 		items
 	)  => {
 		console.log(items);
-		let positions = shuffleArray(getFloorsPosition(map));   
+		let positions = shuffleArray(getFloorsPosition(map));
 		let orderedItems = shuffleArray(items);
 		let position;
 		let Items = [];
@@ -675,12 +678,12 @@ const newBoard = () => {
    // var data = builder.build(items);
     var data = builder.build();
 	 let items = placeItems(data.map, buildItems(1));
-		console.log(items);	
+		console.log(items);
     return {
       map_board: data.map,
       rooms: data.rooms
     };
-  };  
+  };
 
 
 //end of map generator
@@ -689,8 +692,8 @@ const newBoard = () => {
 /*------------------------------------------------------------------------*/
 //REDUCERS area
 //active weapon reducer
-const WeaponsHabilitiesInitialState = Immutable.fromJS({	
-				
+const WeaponsHabilitiesInitialState = Immutable.fromJS({
+
 					gun: {
 						active:true
 						},
@@ -702,7 +705,7 @@ const WeaponsHabilitiesInitialState = Immutable.fromJS({
 						},
 					bow:  {
 						active:false
-						}, 
+						},
 					sword: {
 						active:false
 					},
@@ -717,12 +720,12 @@ const WeaponsHabilitiesInitialState = Immutable.fromJS({
 						},
 					silverware:  {
 						active:false
-						}				
-						
-  
+						}
+
+
 	});
 
-const GameInitialState = Immutable.fromJS({					
+const GameInitialState = Immutable.fromJS({
 	  deaths: 0,
 	  health: 4,
 	  attack: 0,
@@ -731,82 +734,82 @@ const GameInitialState = Immutable.fromJS({
 	  player: {
 		 row: 30,
 		 col: 30,
-		direction: 'left' 
+		direction: 'left'
 	  }
-					
+
 });
 
 
 const game = (state,action) => {
-					
+
 	switch (action.type) {
 		case 'DEATH':
-			
+
 			return {
 				...state,
 				deaths:true
 			}
-		
+
 		default:
 			return state
-		}		
+		}
 };
 //called from Weapons
 //define if the weapon is active or no
 const activeWeaponHabilities = (state,action) => {
-					
+
 	switch (action.type) {
 		case 'ACTIVATE_WEAPON':
 			return {
 				...state,
 				active:true
 			}
-		
+
 		default:
 			return state
-		}		
+		}
 };
 
 const Map = (
 	state= newBoard(),
 	action
 ) => {
-	
+
 	let Map = state.map_board;
 	let newMap = []
-		Map.map((row,rIndex)  => {		
+		Map.map((row,rIndex)  => {
 			let newRow = []
 			row.map((tile, coll)=>{
 				newRow.push(createTile(grounds,rIndex, coll, tile));
 			});
 			newMap.push(newRow);
 		})
-	
+
 		state.map_board = newMap;
 	return state
-	
+
 };
-		
-//reduder for activeWeapons 
+
+//reduder for activeWeapons
 //for each weapon call activeweapon
 //if no state was passed that means initial state
 const WeaponsHabilities = (
-	state = WeaponsHabilitiesInitialState, 
+	state = WeaponsHabilitiesInitialState,
 	action
 ) => {
-	  return state.map(state =>	
+	  return state.map(state =>
             activeWeaponHabilities(state, action)
         );
 };
 
 const gameStats = (
-	state = GameInitialState, 
+	state = GameInitialState,
 	action
 ) => {
-	 return state.map(state =>	
+	 return state.map(state =>
             game(state, action)
         );
-	
+
 };
 
 
@@ -814,7 +817,7 @@ const mapConfiguration = (
 	state = Immutable.fromJS(MapConfig),
 	action) => {
 		return state
-	
+
 };
 
 const dcApp = combineReducers({
@@ -822,7 +825,7 @@ const dcApp = combineReducers({
 	gameStats,
 	mapConfiguration,
 	Map
-	
+
 });
 
 //End of REDUCERS
@@ -836,13 +839,13 @@ const mapStateToWeaponsHabilitiesProps=(
 		//take care !!! im using immutableJS!!!
 		var WeaponsState = state.WeaponsHabilities.get(ownProps.entity);
 		var WeaponState = WeaponsState.get('active')
-				
-		
+
+
 	return {
 		entity: ownProps.entity,
 		active: WeaponState
 	}
-	
+
 };
 
 const WeaponHabilities = (
@@ -851,11 +854,11 @@ const WeaponHabilities = (
 	var cName = "entity entity--" + props.entity;
 	var display = (props.active===false)?'hidden':'visible';
 	display = {visibility:display}
-	
+
 	return (
 		<span className={cName}
 				style = {display}
-		/> 
+		/>
 	)
 };
 
@@ -866,79 +869,79 @@ const WeaponHabilitesContainer = connect(
 
 
 const ActiveWeapons = () => {
-	
+
 	return (
 		<Col
-			componentClass={ControlLabel} 
+			componentClass={ControlLabel}
 			sm={2}>
 				Weapon
 			<div>
-				<WeaponHabilitesContainer 
+				<WeaponHabilitesContainer
 					entity ="gun"
 				/>
-				<WeaponHabilitesContainer 
+				<WeaponHabilitesContainer
 					entity ="knife"
 				/>
-				<WeaponHabilitesContainer 
+				<WeaponHabilitesContainer
 					entity ="hammer"
 				/>
-				<WeaponHabilitesContainer 
+				<WeaponHabilitesContainer
 					entity ="bow"
 				/>
-				<WeaponHabilitesContainer 
+				<WeaponHabilitesContainer
 					entity ="sword"
 				/>
 			</div>
 		</Col>
-	
+
 	);
-		
+
 };
-	
+
 const ActiveHabilities = () => {
-	
+
 	return (
 		<Col
-			componentClass={ControlLabel} 
+			componentClass={ControlLabel}
 			sm={2}>
 				Habilities
 			<div>
-				<WeaponHabilitesContainer 
+				<WeaponHabilitesContainer
 					entity ="boots"
 				/>
-				<WeaponHabilitesContainer 
+				<WeaponHabilitesContainer
 					entity ="sunglasses"
 				/>
-				<WeaponHabilitesContainer 
+				<WeaponHabilitesContainer
 					entity ="speedboat"
 				/>
-				<WeaponHabilitesContainer 
+				<WeaponHabilitesContainer
 					entity ="silverware"
 				/>
 			</div>
-		</Col>	
+		</Col>
 	);
-		
+
 };
 
-// END of Weapons Habilities 
+// END of Weapons Habilities
 /*------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------*/
-//Game stats 
+//Game stats
 
 const mapStateToCurrentGameStatsProps=(
 	state
 ) => {
-		//take care !!! im using immutableJS!!!	
+		//take care !!! im using immutableJS!!!
 		var gameStats = state.gameStats;
-		var currentHealth = gameStats.get('health');		
+		var currentHealth = gameStats.get('health');
 		var currentLevel = gameStats.get('level');
 		var currentNextLevel = gameStats.get('nextLevel');
 		var currentAttack = gameStats.get('attack');
-	
-		//console.log(JSON.stringify(gameStats));	
-		//console.log(currentLevel);	
-		
+
+		//console.log(JSON.stringify(gameStats));
+		//console.log(currentLevel);
+
 	return {
 
 		currentHealth: currentHealth,
@@ -946,21 +949,21 @@ const mapStateToCurrentGameStatsProps=(
 		currentAttack: currentAttack,
 		currentNextLevel: currentNextLevel
 	};
-	
+
 };
 
 const CurrentHealth = (
 	props
 ) =>{
 	return (
-		<Col 
-			componentClass={ControlLabel} 
+		<Col
+			componentClass={ControlLabel}
 			sm={2}>
 				Health
 			<FormControl
 				readOnly
 				id="Health"
-				type="text"	
+				type="text"
 				value={props.currentHealth}
 			/>
 		</Col>
@@ -976,14 +979,14 @@ const CurrentLevel = (
 ) =>{
 	//console.log(JSON.stringify(props));
 	return (
-		<Col 
-			componentClass={ControlLabel} 
+		<Col
+			componentClass={ControlLabel}
 			sm={2}>
 				Level
 			<FormControl
 				readOnly
 				id="Level"
-				type="text"	
+				type="text"
 				value={props.currentLevel}
 			/>
 		</Col>
@@ -998,14 +1001,14 @@ const CurrentAttack = (
 	props
 ) =>{
 	return (
-		<Col 
-			componentClass={ControlLabel} 
+		<Col
+			componentClass={ControlLabel}
 			sm={2}>
 				Attack
 			<FormControl
 				readOnly
 				id="Attack"
-				type="text"	
+				type="text"
 				value={props.currentAttack}
 			/>
 		</Col>
@@ -1021,14 +1024,14 @@ const nextLevel = (
 ) =>{
 
 	return (
-		<Col 
-			componentClass={ControlLabel} 
+		<Col
+			componentClass={ControlLabel}
 			sm={2}>
 				Next Level
 			<FormControl
 				readOnly
 				id="NextLevel"
-				type="text"	
+				type="text"
 				value={props.currentNextLevel}
 			/>
 		</Col>
@@ -1068,13 +1071,13 @@ const TilesRow = (
 	props
 ) => {
 	const { tiles } = props
-	
+
 	const renderTile = (
 		tile
 	) => {
 		const { block } = props;
     	const { type, row, col } = tile;
-		let key = type + '-' + row + '-' + col;	
+		let key = type + '-' + row + '-' + col;
 		return !tile ? null : (
 		  <Tile
 			key={key}
@@ -1086,7 +1089,7 @@ const TilesRow = (
 		);
 
 	}
-	
+
 	return (
       <div className="tiles__row">
         {tiles.map(renderTile)}
@@ -1097,10 +1100,10 @@ const TilesRow = (
 
 const Tiles = (
 	props
-) => {	
-	
+) => {
+
 	const renderTilesRow = (row, i) =>{
-		
+
 		 const { block } = props;
     		return (
 				<TilesRow
@@ -1110,23 +1113,23 @@ const Tiles = (
       				/>
 			);
 	}
-			 
-		    
+
+
 	const { tiles } = props;
-	
+
 	return (
 	  <div className="tiles">
 			{tiles.map(renderTilesRow)}
 	  </div>
 	);
-	
+
 };
 
 const mapStateToEntitiesProps = (
 	state
 ) =>{
 	let MapBoard = state.Map.map_itens;
-	
+
   return {
     block: 'entity',
     tiles: MapBoard
@@ -1136,9 +1139,9 @@ const mapStateToEntitiesProps = (
 const mapStateToGroundProps = (
 	state
 ) => {
-	
+
 	let MapBoard = state.Map.map_board;
-	
+
   return {
     block: 'ground',
     tiles: MapBoard
@@ -1152,21 +1155,21 @@ const GroundContainer = connect(
 
 
 const Word = (
-	props	
+	props
 ) => {
-	
+
 	const className = 'world ';
-	
-    //calc the inicial offset values 
+
+    //calc the inicial offset values
 	//positioning the map on center of the camera
-	
-	const style  = gridCoordsToOffsetStyle(props.MapCoordToOffSetRow,props.MapCoordToOffSetCol)	;	
-	
+
+	const style  = gridCoordsToOffsetStyle(props.MapCoordToOffSetRow,props.MapCoordToOffSetCol)	;
+
 
 	return (
 		<div className={className} style={style}>
-			<GroundContainer /> 
-		</div>	
+			<GroundContainer />
+		</div>
 	);
 };
 
@@ -1177,16 +1180,16 @@ const mapStateToWordProps =(
 	let mapConfig = state.mapConfiguration;
 	let gameStats = state.gameStats;
 	let map = state.map;
-	
+
 	let worldWidth = mapConfig.get('width');
 	let worldHeight = mapConfig.get('height');
-	
+
 	let player = gameStats.get('player');
 	let playerCol = player.get('col');
 	let playerRow = player.get('row');
-	
-	
-	
+
+
+
 	const  CoordToOffSet = (worldDim, camDim, playerCoord) => {
 				  // Number of units that are offscreen for this x or y dimension.
 				  const unitsOutsideCamera = worldDim - camDim;
@@ -1211,22 +1214,22 @@ const mapStateToWordProps =(
 				  // Finally, to ensure that we don't show any gaps between the world's
 				  // bounds and the camera, we `clamp` `coord` within those bounds.
 
-					//pelo que entendi aqui ele junta as codernadas do mapa achando o 
+					//pelo que entendi aqui ele junta as codernadas do mapa achando o
 					// restringindo pelas bordas do mapa
-					
+
 				   return clamp(minCoord, maxCoord, coord);
-			   
+
 	 			};
-						 
-	
+
+
 	return {
 
 		MapCoordToOffSetCol: CoordToOffSet(worldWidth,CAM_COLS,playerCol),
 		MapCoordToOffSetRow: CoordToOffSet(worldHeight,CAM_ROWS,playerRow),
 		map: map
-		
+
 	}
-	
+
 }
 
 //need to calculate the of set disposition of
@@ -1237,38 +1240,38 @@ const WordContainer = connect(
 
 
 const GameBoard = () => {
-	
+
 		return (
-			<Col 
-				md={12} 			
-				componentClass={Well} 
+			<Col
+				md={12}
+				componentClass={Well}
 				bsSize="large"
 				id="GameBoard">
 				<div className ="game">
 				<WordContainer />
 				</div>
  			</Col>
-		 
+
 		)
 }
-	
+
 
 /*------------------------------------------------------------------------*/
 
 const Header = () => {
 
 	return (
-		<Col 
+		<Col
 			md={12}
-			componentClass={Well} 
+			componentClass={Well}
 			bsSize="large"
-			id="Header"> 
+			id="Header">
 				<h1> React Roguelike </h1>
 				<h3> Kill the KING!!! </h3>
 			<Col md={12}>
-				<form> 
-					<FormGroup 
-						controlid="gameStatus" 
+				<form>
+					<FormGroup
+						controlid="gameStatus"
 						bsSize="small">
 							<CurrentHealthConainer />
 							<ActiveWeapons />
@@ -1279,45 +1282,45 @@ const Header = () => {
 					</FormGroup>
 				</form>
 			</Col>
-			
+
 		</Col>
 
 	);
 };
 const Footer = () =>  {
-	
+
 		return (
-			<Col 
+			<Col
 				md={12}
-				componentClass={Well} 
+				componentClass={Well}
 				bsSize="large"
-				id="Footer"> 
-				<Col	
+				id="Footer">
+				<Col
 					mdOffset={4}
 					md={4}>
-						<p>Site develop for me using a lot of <FontAwesome name="fa fa-coffee"/> and <FontAwesome name="fa fa-music"/></p>	
+						<p>Site develop for me using a lot of <FontAwesome name="fa fa-coffee"/> and <FontAwesome name="fa fa-music"/></p>
 						<p><FontAwesome name="fa fa-copyright"/>2016 <a href="http://www.metaconexao.com.br"> Jean Philip de Rogatis</a></p>
 				</Col>
 			</Col>
-		 
+
 		);
-};	
+};
 const Controler = () => {
 	const { createStore } = Redux;
-	
+
 		return (
 			<Provider store = {createStore(dcApp)}>
 				<Grid fluid>
 					<Header/>
 					<GameBoard/>
-					<Footer/>				
-				</Grid>	
-			</Provider>	
-			
+					<Footer/>
+				</Grid>
+			</Provider>
+
 		);
 };
 
 
 
-ReactDOM.render(<Controler/>, 
+ReactDOM.render(<Controler/>,
 				document.getElementById('mountNode'));
