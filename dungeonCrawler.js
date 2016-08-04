@@ -173,15 +173,7 @@ const GameLevels = {
 		  level_range: [3, 5]
 		}
 	  }
-}
-	
-//defintions of size of col and row	
- const PX_PER_COL = 25;
- const PX_PER_ROW = 25;	
- const CAM_COLS   = 800 / PX_PER_COL;
- const CAM_ROWS   = 600 / PX_PER_ROW;
-
- 
+};
 
  const grounds = {
   GA: { type: 'grass' },
@@ -196,6 +188,13 @@ const GameLevels = {
   GJ: { type: 'doorway' },
   GK: { type: 'snow' },
 };
+	
+//defintions of size of col and row	
+ const PX_PER_COL = 25;
+ const PX_PER_ROW = 25;	
+ const CAM_COLS   = 800 / PX_PER_COL;
+ const CAM_ROWS   = 600 / PX_PER_ROW;
+
 
 
 /*------------------------------------------------------------------------*/
@@ -792,9 +791,9 @@ const	placeItems = (
 		items
 	)  => {
 		//console.log(items);
-		let positions = shuffleArray(getFloorsPosition(Map));   
+		//let positions = shuffleArray(getFloorsPosition(Map));   
 		let orderedItems = shuffleArray(items);
-		console.log(JSON.stringify(Map));
+		//console.log(JSON.stringify(Map));
 		
 		//let position;
 		//let Items = [];
@@ -831,7 +830,7 @@ const newBoard = () => {
    // var data = builder.build(items);
     var data = builder.build();
 	 let items = placeItems(data.map, buildItems(1));
-	console.log(JSON.stringify(items));	
+	//console.log(JSON.stringify(items));	
     return {
       map_board: data.map,
       rooms: data.rooms,
@@ -939,7 +938,20 @@ const Map = (
 			newMap.push(newRow);
 		})
 	
+	let Entities = state.entities;
+	let newEntities = []
+		Entities.map((row,rIndex)  => {		
+			let newRow = []
+			row.map((tile, coll)=>{
+				newRow.push(createTile(entities,rIndex, coll, tile));
+			});
+			newEntities.push(newRow);
+		})
+		
+		
 		state.map_board = newMap;
+		state.entities = newEntities;
+		console.log(state);
 	return state
 	
 };
@@ -1229,20 +1241,23 @@ const TilesRow = (
 	const renderTile = (
 		tile
 	) => {
-		const { block } = props;
-    	const { type, row, col } = tile;
-		let key = type + '-' + row + '-' + col;	
-		return !tile ? null : (
-		  <Tile
-			key={key}
-			block={block}
-			col={col}
-			row={row}
-			type={type}
-		  />
-		);
-
-	}
+		if ( tile != null ) {
+			const { block } = props;
+			const { type, row, col } = tile;
+			let key = type + '-' + row + '-' + col;	
+			return (
+				  <Tile
+					key={key}
+					block={block}
+					col={col}
+					row={row}
+					type={type}
+				  />
+				);
+			} 
+			return tile;
+		
+		};
 	
 	return (
       <div className="tiles__row">
@@ -1282,11 +1297,12 @@ const Tiles = (
 const mapStateToEntitiesProps = (
 	state
 ) =>{
-	let MapBoard = state.Map.map_itens;
+	//console.log(state)
+	let Entities = state.Map.entities;
 	
   return {
     block: 'entity',
-    tiles: MapBoard
+    tiles: Entities
   };
 };
 
@@ -1308,6 +1324,10 @@ const GroundContainer = connect(
 )(Tiles);
 
 
+const EntitiesContainer = connect(
+  mapStateToEntitiesProps
+)(Tiles);
+
 const Word = (
 	props	
 ) => {
@@ -1323,6 +1343,7 @@ const Word = (
 	return (
 		<div className={className} style={style}>
 			<GroundContainer /> 
+			<EntitiesContainer />
 		</div>	
 	);
 };
