@@ -181,6 +181,8 @@ const GameLevels = {
  const CAM_COLS   = 800 / PX_PER_COL;
  const CAM_ROWS   = 600 / PX_PER_ROW;
 
+ 
+
  const grounds = {
   GA: { type: 'grass' },
   GB: { type: 'path' },
@@ -194,6 +196,7 @@ const GameLevels = {
   GJ: { type: 'doorway' },
   GK: { type: 'snow' },
 };
+
 
 /*------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------*/
@@ -237,6 +240,9 @@ const hasEmoji = () =>{
 	return navigator.platform === 'MacIntel';
 };
 
+/*------------------------------------------------------------------------*/
+//tale utilities 
+
 const splitter = /\s+\|?\s*/;
 
 const createTile = _.curry((defs, row, col, shortType) => {
@@ -258,6 +264,132 @@ const parseLevelGrid = _.curry((defs, data) => {
 
 const parseGrounds = parseLevelGrid(grounds);
 //const parseEntities = parseLevelGrid(entities);
+
+/*------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------*/
+//habilities 
+const returnTrue = () => true;
+ const not = _.negate;
+
+//aqui ele pega o state mas não sei da onde....
+const buildAbility = (prop) => (state, entity) => {
+  const fn = entity.get(prop);
+  return _.isFunction(fn) ? fn(state, entity) : false;
+};
+
+const canBlock = buildAbility('canBlock');
+const canCollect = buildAbility('canCollect');
+const canDie = buildAbility('canDie');
+const canDestroy = buildAbility('canDestroy');
+const canKill = buildAbility('canKill');
+const canWin = buildAbility('canWin');
+
+
+const hasPowerup = _.curry((powerup, state, entity) => {
+  return state.get('powerups').includes(powerup);
+});
+
+const hasBoots = hasPowerup('boots');
+const hasHammer = hasPowerup('hammer');
+const hasSilverware = hasPowerup('silverware');
+const hasSpeedboat = hasPowerup('speedboat');
+const hasSunglasses = hasPowerup('sunglasses');
+
+/*------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------*/
+//entities
+/*const canBlock = returnTrue;
+const canCollect = returnTrue;
+const canDestroy = returnTrue;
+const canKill = returnTrue;*/
+//const canWin = (s) => s.get('numTapes') >= level.getNumTapesTotal(s);
+
+const blocksUnless = (hasAbility) => ({
+  canBlock: not(hasAbility),
+  canDie: hasAbility
+});
+
+const is = _.curry((prop, val, entity) => entity[prop] === val);
+
+const typeIs = is('type');
+
+
+const entities = {
+  '00': { type: 'empty' },
+  '01': { type: 'start' },
+  // Special
+  SA: { type: 'tape', canCollect },
+  SB: { type: 'door', canWin, canDestroy: canWin, canBlock: not(canWin) },
+  SC: { type: 'person' },
+  SD: { type: 'invisible', canBlock },
+  SE: { type: 'ghost' },
+  // Powerups
+  PA: { type: 'sunglasses', canCollect },
+  PB: { type: 'silverware', canCollect },
+  PC: { type: 'speedboat',  canCollect },
+  PD: { type: 'boots',      canCollect },
+  PE: { type: 'hammer',     canCollect },
+  // Bounds
+  BA: { type: 'treeA',    canBlock },
+  BB: { type: 'treeB',    canBlock },
+  BC: { type: 'building', canBlock },
+  BD: { type: 'rabbit',   ...blocksUnless(hasHammer) },
+  BE: { type: 'chicken',  ...blocksUnless(hasHammer) },
+  BF: { type: 'fishA',    ...blocksUnless(hasSpeedboat) },
+  BG: { type: 'fishB',    ...blocksUnless(hasSpeedboat) },
+  BH: { type: 'turtle',   ...blocksUnless(hasBoots) },
+  BI: { type: 'camel',    ...blocksUnless(hasHammer) },
+  BJ: { type: 'cloud',    canBlock },
+  BK: { type: 'creepsun', ...blocksUnless(hasHammer) },
+  BL: { type: 'palm',     canBlock },
+  BM: { type: 'flowerA',  ...blocksUnless(hasBoots) },
+  BN: { type: 'flowerB',  ...blocksUnless(hasBoots) },
+  BO: { type: 'flowerC',  ...blocksUnless(hasBoots) },
+  BP: { type: 'treeC',    canBlock },
+  BQ: { type: 'leavesA',  canBlock },
+  BR: { type: 'leavesB',  canBlock },
+  BS: { type: 'leavesC',  canBlock },
+  BT: { type: 'willows',  canBlock },
+  BU: { type: 'shell',    ...blocksUnless(hasBoots) },
+  BV: { type: 'snowflake', canBlock },
+  BW: { type: 'banana',    canDestroy: hasSilverware },
+  BX: { type: 'monkey',    ...blocksUnless(hasHammer) },
+  BY: { type: 'elephant',  ...blocksUnless(hasHammer) },
+  BZ: { type: 'houseA',    canBlock },
+  CA: { type: 'houseB',    canBlock },
+  CB: { type: 'mart',      canBlock },
+  CC: { type: 'musichall', canBlock },
+  CD: { type: 'moai',      ...blocksUnless(hasHammer) },
+  // The sign
+  ZL: { type: 'storesign--v', canBlock },
+  ZM: { type: 'storesign--i', canBlock },
+  ZN: { type: 'storesign--d', canBlock },
+  ZO: { type: 'storesign--e', canBlock },
+  ZP: { type: 'storesign--o', canBlock },
+  ZQ: { type: 'storesign--s', canBlock },
+  ZR: { type: 'storesign--t', canBlock },
+  ZS: { type: 'storesign--r', canBlock },
+  // Killers without items
+  DA: { type: 'sun',     canKill: not(hasSunglasses) },
+  DB: { type: 'corn',    canBlock: not(hasSilverware), canDestroy: hasSilverware },
+  DC: { type: 'wave',    canBlock: not(hasSpeedboat) },
+  DD: { type: 'fire',    canKill: not(hasBoots), canDestroy: hasBoots },
+  DE: { type: 'snowman', canKill: not(hasHammer), canDie: hasHammer },
+  DF: { type: 'santa',   canKill: not(hasHammer), canDie: hasHammer },
+  DG: { type: 'shit',    canKill: not(hasBoots),  canDie: hasBoots },
+  // Killers always
+  KA: { type: 'bee',       canKill },
+  KB: { type: 'gator',     canKill },
+  KC: { type: 'snake',     canKill },
+  KD: { type: 'carA',      canKill },
+  KE: { type: 'carB',      canKill },
+  KF: { type: 'taxi',      canKill },
+  KG: { type: 'firetruck', canKill },
+  KH: { type: 'police',    canKill },
+  KI: { type: 'ambulance', canKill },
+  KJ: { type: 'cactus',    canKill },
+  KK: { type: 'tornado',   canKill },
+};
 
 /*------------------------------------------------------------------------*/
 //map generator
@@ -600,34 +732,40 @@ const buildItems = (level) => {
 
     for ( var key = 0; key < qtyEnemies; key++ ) {
       items.push({
-        type: 'EN',
+		  //snake
+		  //aqui randomiza os inimigos
+        type: 'KC',
         data: {          
           level: RandomIntFromArray(config.enemies.level_range)
         }
       });
     }
+	//aqui randomiza o recovery
     for ( var key = 0; key < qtyRecovery; key++ ) {
       items.push({
-        type: 'RE',
+		  //anbulance
+        type: 'KI',
         data: {          
           value: RandomIntFromArray(config.recovery.value_range)
         }
       });
     }
+	//aqui as armas... 
     var weaponKey = Math.floor(Math.random() * config.weapons.length);
     items.push({
-      type: "WP",
+		//
+      type: "PE",
       data: {
         weapon: config.weapons[weaponKey]
       }
     });
     if ( typeof config.boss === 'undefined' ) {
       items.push({
-        type:"LU"        
+        type:"DF"        
       });
     }
     items.push({
-      type: "PL",//Player
+      type: "SC",//Player
       data: {
         level: 1,
         health: 100,
@@ -650,23 +788,41 @@ const  getFloorsPosition = (map) => {
  };
 	
 const	placeItems = (
-		map,
+		Map,
 		items
 	)  => {
-		console.log(items);
-		let positions = shuffleArray(getFloorsPosition(map));   
+		//console.log(items);
+		let positions = shuffleArray(getFloorsPosition(Map));   
 		let orderedItems = shuffleArray(items);
-		let position;
-		let Items = [];
-		let item = [];
-		for ( let key in orderedItems) {
+		console.log(JSON.stringify(Map));
+		
+		//let position;
+		//let Items = [];
+		//let item = [];
+	
+		/*for ( let key in orderedItems) {
 		  position = positions.shift();
 			item[position.y] = [];
 			item[position.y][position.x] = orderedItems[key].type;
 		  //map[position.y][position.x] = orderedItems[key].type;
 		  orderedItems[key].position = position;
 			items.push(item)
-		}
+		}*/
+		let entities = [];
+		Map.map((row, yIndex)=>{
+			let entitiesRow = []
+			row.map((cell, xIndex)=>{
+				if (Map[yIndex][xIndex] === MapConfig.tileTypes.floor) {
+					entitiesRow.push('BL');
+				}  else {
+					entitiesRow.push('');
+				};
+				
+			});
+			entities.push(entitiesRow);
+		});
+		
+		return entities
   };
 
 
@@ -675,10 +831,11 @@ const newBoard = () => {
    // var data = builder.build(items);
     var data = builder.build();
 	 let items = placeItems(data.map, buildItems(1));
-		console.log(items);	
+	console.log(JSON.stringify(items));	
     return {
       map_board: data.map,
-      rooms: data.rooms
+      rooms: data.rooms,
+	  entities: items 	
     };
   };  
 
