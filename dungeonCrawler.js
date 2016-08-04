@@ -115,12 +115,12 @@ FontAwesome.propTypes = {
   }
 
 const MapConfig = {
-	  width: 100,
-	  height: 80,
+	  width: 60,
+	  height: 40,
 	  min_rooms: 20,
 	  max_rooms: 48,
 	  room: {
-		height: {min: 4, max: 14},
+		height: {min: 4, max: 14}, 
 		width: {min: 8, max: 18}
 	  },
 	  tileTypes: {
@@ -637,11 +637,45 @@ const buildItems = (level) => {
     return items;
   };
 
+const  getFloorsPosition = (map) => {
+		var positions = [];
+		for ( var y in map ) {
+		  for ( var x = 0; x < map[y].length; x++ ) {
+			if ( map[y][x] == MapConfig.tileTypes.floor || !isNaN(map[y][x]) ) {
+			  positions.push({y: y, x:x});          
+			}
+		  }
+		}
+    	return positions;
+ };
+	
+const	placeItems = (
+		map,
+		items
+	)  => {
+		console.log(items);
+		let positions = shuffleArray(getFloorsPosition(map));   
+		let orderedItems = shuffleArray(items);
+		let position;
+		let Items = [];
+		let item = [];
+		for ( let key in orderedItems) {
+		  position = positions.shift();
+			item[position.y] = [];
+			item[position.y][position.x] = orderedItems[key].type;
+		  //map[position.y][position.x] = orderedItems[key].type;
+		  orderedItems[key].position = position;
+			items.push(item)
+		}
+  };
+
+
 const newBoard = () => {
     var builder = new MapBuilder();
-  	 
    // var data = builder.build(items);
     var data = builder.build();
+	 let items = placeItems(data.map, buildItems(1));
+		console.log(items);	
     return {
       map_board: data.map,
       rooms: data.rooms
@@ -1017,9 +1051,9 @@ const Tile = (
 	props
 ) => {
 
-	const { block, col, row, type, className } = props;
+	const { block, col, row, type } = props;
 	let blockType =  `${block}--${type}`;
-	let classNames = className + " " + 'tile ' + block + " " +  blockType
+	let classNames = 'tile ' + block + " " +  blockType
     const attrs = {
       ...props,
       style: gridCoordsToOffsetStyle(row, col),
@@ -1088,7 +1122,16 @@ const Tiles = (
 	
 };
 
-
+const mapStateToEntitiesProps = (
+	state
+) =>{
+	let MapBoard = state.Map.map_itens;
+	
+  return {
+    block: 'entity',
+    tiles: MapBoard
+  };
+};
 
 const mapStateToGroundProps = (
 	state
@@ -1101,7 +1144,6 @@ const mapStateToGroundProps = (
     tiles: MapBoard
   };
 };
-
 
 //render the ground tiles first
 const GroundContainer = connect(
@@ -1119,7 +1161,7 @@ const Word = (
 	//positioning the map on center of the camera
 	
 	const style  = gridCoordsToOffsetStyle(props.MapCoordToOffSetRow,props.MapCoordToOffSetCol)	;	
-	//const style  =  null
+	
 
 	return (
 		<div className={className} style={style}>
