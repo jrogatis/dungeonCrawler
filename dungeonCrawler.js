@@ -198,6 +198,7 @@ const GameLevels = {
 
 
 
+
 /*------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------*/
 //utils
@@ -208,8 +209,7 @@ const clamp =(min,max,num) =>{
 	} 
 	let curryed = _.curry(temp);
 	
-	console.log(curryed(min,max,min))
-
+	
 	return curryed(min,max,min);
 }
 
@@ -240,8 +240,91 @@ const hasEmoji = () =>{
 	return navigator.platform === 'MacIntel';
 };
 
+const ensureArray = (value) => {
+  return Array.isArray(value) ? value : [value];
+	
+};
+
+const  getFloorsMapPosition = (Map) => {
+		
+		let positions = [];
+		Map.map((row, y ) => {
+			row.map((tile,x) => {
+					//console.log(tile.shortType)
+				if (tile.shortType ===  MapConfig.tileTypes.floor) {
+					positions.push({y: y, x:x});    
+					}
+				}
+			)
+
+		})
+		//console.log(positions);
+		return positions;
+};
+
 /*------------------------------------------------------------------------*/
-//tale utilities 
+//buildModel
+
+const getProp = _.curry((keypath, state) => state.getIn(keypath));
+const setProp = _.curry((keypath, value, state) => state.setIn(keypath, value));
+
+
+const buildModel = (keypath, props) => {
+  keypath = ensureArray(keypath);
+  return props.reduce((api, prop) => {
+    prop = ensureArray(prop);
+    const camelized = _.capitalize(_.camelCase(prop));
+    const propKeypath = [...keypath, ...prop];
+    api[`get${camelized}`] = getProp(propKeypath);
+    api[`set${camelized}`] = setProp(propKeypath);
+    return api;
+  }, {});
+};
+
+/*------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------*/
+//level utils
+
+/*const keypath = 'level';
+
+const groundsOwnKeypath = 'grounds';
+const groundsKeypath = [keypath, groundsOwnKeypath];
+
+const entitiesOwnKeypath = 'entities';
+const entitiesKeypath = [keypath, entitiesOwnKeypath];
+
+const groundsLevel = (s) => s.getIn(groundsKeypath);
+const entitiesLevel = (s) => s.getIn(entitiesKeypath);
+
+const tileAt = _.curry((kp, col, row, state) => {
+  return state.getIn([...kp, row, col]);
+});
+
+const api = buildModel(keypath, [
+  entitiesOwnKeypath,
+  groundsOwnKeypath,
+  'numTapesTotal',
+  'playerStart',
+]);
+
+const level = Object.assign(api, {
+
+	  groundAt: tileAt(groundsKeypath),
+	  entityAt: tileAt(entitiesKeypath),
+
+	  minCol: (s) => 0,
+	  maxCol: (s) => groundsLevel(s).first().size - 1,
+	  minRow: (s) => 0,
+	  maxRow: (s) => groundsLevel(s).size - 1,
+
+	  width: (s) => groundsLevel(s).first().size,
+	  height: (s) => groundsLevel(s).size,
+
+});*/
+
+/*------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------*/
+//tile utilities 
 
 const splitter = /\s+\|?\s*/;
 
@@ -389,6 +472,98 @@ const entities = {
   KJ: { type: 'cactus',    canKill },
   KK: { type: 'tornado',   canKill },
 };
+
+/*------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------*/
+//keyboard 
+const keyCodes = Object.freeze({
+  37: 'left',
+  38: 'up',
+  39: 'right',
+  40: 'down'
+});
+
+const eventToProp = Object.freeze({
+	  keydown: 'onKeyDown',
+	  keyup: 'onKeyUp',
+	  keypress: 'onKeyPress'
+});
+
+const Keyboard = (
+	/*children
+    keyFilter,
+    activeElementFilter,
+    filter,
+    onKeyDown,
+    onKeyUp*/
+) => {
+
+		const getDefaultProps = () => {
+			const returnTrue = () => true;
+			const noop = () => {};
+			return {
+			  keyFilter: returnTrue,
+			  activeElementFilter: returnTrue,
+			  filter: returnTrue,
+			  onKeyDown: noop,
+			  onKeyUp: noop
+			};
+		  };
+
+	const toggleKeyboardBindings = (turnOn) =>{
+		// TODO: better to do this outside of component so
+		// we don't get a ton of bindings.
+		const method = `${turnOn ? 'add' : 'remove'}EventListener`;
+		Object.keys(eventToProp).forEach((event) => {
+		  window[method](event, this.onKeyEvent);
+		});
+	  };
+	
+	const getEventKey = (e) =>{
+    	const key = e.keyCode;
+		return keyCodes[key] || String.fromCharCode(key);
+   };
+
+  const onKeyEvent = (e) => {
+    	const handler = this.props[eventToProp[e.type]];
+    	if (this.matchesAllFilters(e)) {
+      		handler(this.getEventKey(e), e);
+    	}
+  };
+
+  const matchesKey = (key) => {
+    const { keyFilter } = this.props;
+    return (
+      isFunction(keyFilter) ?
+      keyFilter(key) :
+      key.toLowerCase() === keyFilter.toLowerCase()
+    );
+  };
+		
+	const matchesActiveElement = (target) => {
+		const { activeElement, body } = document;
+		const { activeElementFilter } = this.props;
+		return (
+		  (activeElement === body) ||
+		  activeElementFilter(activeElement, target)
+		);
+	};
+		
+	const matchesFilter = (key, modifiers, e) => {
+		return this.props.filter(key, modifiers, e);
+	};
+
+  const matchesAllFilters = (e) => {
+    const key = this.getEventKey(e);
+    return (
+      this.matchesKey(key) &&
+      this.matchesActiveElement(e.target) &&
+      this.matchesFilter(key, e)
+    );
+  };		
+	
+};
+
 
 /*------------------------------------------------------------------------*/
 //map generator
@@ -733,7 +908,7 @@ const buildItems = (level) => {
       items.push({
 		  //snake
 		  //aqui randomiza os inimigos
-        type: 'KC',
+        type: 'DG',
         data: {          
           level: RandomIntFromArray(config.enemies.level_range)
         }
@@ -763,14 +938,14 @@ const buildItems = (level) => {
         type:"DF"        
       });
     }
-    items.push({
+    /*items.push({
       type: "SC",//Player
       data: {
         level: 1,
         health: 100,
         weapon: 'PE'
       }
-    });
+    });*/
     return items;
   };
 
@@ -805,14 +980,6 @@ const	placeItems = (
 					Map.map((row, yIndex)=>{
 						let entitiesRow = [];
 						row.map((cell, xIndex)=>{
-							/*if (Map[yIndex][xIndex] === MapConfig.tileTypes.floor &&
-								(entitiesRow[xIndex] !== undefined || 	entitiesRow[xIndex] !== 'BL')
-							   ) {
-								entitiesRow.push('BL');
-							}  else {
-								entitiesRow.push('');
-							};
-*/	
 								entitiesRow.push('');
 						});
 						entities.push(entitiesRow);
@@ -820,9 +987,7 @@ const	placeItems = (
 	
 				//now put  each item on the map using the possiblePositions  suffled...
 				orderedItems.map((item, i) =>{
-					entities[possiblePositions[i].y][possiblePositions[i].x] = item.type;
-					
-					
+					entities[possiblePositions[i].y][possiblePositions[i].x] = item.type;			
 				})
 		
 		return entities
@@ -884,7 +1049,7 @@ const WeaponsHabilitiesInitialState = Immutable.fromJS({
 
 const GameInitialState = Immutable.fromJS({					
 	  deaths: 0,
-	  health: 4,
+	  health: 3,
 	  attack: 0,
 	  level: 1,
 	  nextLevel: 45,
@@ -896,21 +1061,6 @@ const GameInitialState = Immutable.fromJS({
 					
 });
 
-
-const game = (state,action) => {
-					
-	switch (action.type) {
-		case 'DEATH':
-			
-			return {
-				...state,
-				deaths:true
-			}
-		
-		default:
-			return state
-		}		
-};
 //called from Weapons
 //define if the weapon is active or no
 const activeWeaponHabilities = (state,action) => {
@@ -928,36 +1078,39 @@ const activeWeaponHabilities = (state,action) => {
 };
 
 const Map = (
-	state= newBoard(),
-	action
+	state= Immutable.fromJS(newBoard()),
+	action 
 ) => {
-	
-	let Map = state.map_board;
-	let newMap = []
-		Map.map((row,rIndex)  => {		
-			let newRow = []
-			row.map((tile, coll)=>{
-				newRow.push(createTile(grounds,rIndex, coll, tile));
-			});
-			newMap.push(newRow);
-		})
-	
-	let Entities = state.entities;
-	let newEntities = []
-		Entities.map((row,rIndex)  => {		
-			let newRow = []
-			row.map((tile, coll)=>{
-				newRow.push(createTile(entities,rIndex, coll, tile));
-			});
-			newEntities.push(newRow);
-		})
+			//console.log(state);
+			let Map = state.get('map_board');
+			let newMap = []
+				Map.map((row,rIndex)  => {		
+					let newRow = []
+					row.map((tile, coll)=>{
+						newRow.push(createTile(grounds,rIndex, coll, tile));
+					});
+					newMap.push(newRow);
+				})
+
+			let Entities = state.get('entities');
+			let newEntities = []
+				Entities.map((row,rIndex)  => {		
+					let newRow = []
+					row.map((tile, coll)=>{
+						newRow.push(createTile(entities,rIndex, coll, tile));
+					});
+					newEntities.push(newRow);
+				})
+
+
+				state.map_board = newMap;
+				state.entities = newEntities;
+				
+				//console.log(state);
+				return state
+					
+	//console.log(action);			
 		
-		
-		state.map_board = newMap;
-		state.entities = newEntities;
-		console.log(state);
-	return state
-	
 };
 		
 //reduder for activeWeapons 
@@ -976,9 +1129,21 @@ const gameStats = (
 	state = GameInitialState, 
 	action
 ) => {
-	 return state.map(state =>	
-            game(state, action)
-        );
+	console.log('gameStats', state);
+	switch (action.type) {
+		
+		case 'SET_PLAYER_INITIAL_POSITION':
+			console.log('gameStats SET_PLAYER_INITIAL_POSITION', state, action);
+			return Object.assign({}, state, {
+				...state,
+				col:action.col,
+				row:action.row				
+			});
+			
+		default: 
+				console.log('gameStats DFAULT', state, action);
+			return state;
+	};
 	
 };
 
@@ -993,15 +1158,27 @@ const mapConfiguration = (
 
 const dcApp = combineReducers({
     WeaponsHabilities,
-	gameStats,
 	mapConfiguration,
-	Map
+	Map,
+	gameStats
 	
 });
 
 //End of REDUCERS
 /*------------------------------------------------------------------------*/
+//Actions
+const setInitialPosition=(colToSet, rowToSet)=> {
+		return {
+			type:'SET_PLAYER_INITIAL_POSITION',
+			col:colToSet,
+			row:rowToSet
+		}
+		
+};
+
+
 /*------------------------------------------------------------------------*/
+
 //Weapons Habilities
 const mapStateToWeaponsHabilitiesProps=(
 	state,
@@ -1022,13 +1199,13 @@ const mapStateToWeaponsHabilitiesProps=(
 const WeaponHabilities = (
 	props
 ) => {
-	var cName = "entity entity--" + props.entity;
-	var display = (props.active===false)?'hidden':'visible';
-	display = {visibility:display}
+	let cName = "entity entity--" + props.entity;
+	let opacity = (props.active===false)?0.2 :1 ;
+	opacity = {opacity:opacity}
 	
 	return (
 		<span className={cName}
-				style = {display}
+				style = {opacity}
 		/> 
 	)
 };
@@ -1126,17 +1303,45 @@ const mapStateToCurrentGameStatsProps=(
 const CurrentHealth = (
 	props
 ) =>{
+	const health = []
+	let cName = "entity entity--heart";
+	//let display = (props.active===false)?'hidden':'visible';
+
+	let opacity = {opacity:1}
+	let opacityDeath  = {opacity:0.2}
+	//display = {visibility:display}
+	
+	
+	for(let i = 0; i < props.currentHealth; i++){
+		let line = (
+				<span className={cName}
+					style = {opacity}
+					key = {i}
+				/> 
+			)
+			
+			health.push(line)
+		}
+	
+	for(let i = 0; i <  (4 - props.currentHealth) ; i++){
+		let line = (
+				<span className={cName}
+					style = {opacityDeath}
+					key = { (4 - i)}
+				/> 
+			)
+			
+			health.push(line)
+		}
+		
 	return (
-		<Col 
+		<Col
 			componentClass={ControlLabel} 
 			sm={2}>
-				Health
-			<FormControl
-				readOnly
-				id="Health"
-				type="text"	
-				value={props.currentHealth}
-			/>
+				Health		
+				<div>
+					{health}
+				</div>
 		</Col>
 	);
 };
@@ -1216,6 +1421,125 @@ const CurrentNextLevelContainer = connect(
 
 //end game stats
 /*------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------*/
+//player area
+
+const groundToType = Object.freeze({
+  doorway: 'dancer',
+  road: 'bike',
+  roadline: 'bike',
+  sidewalk: 'personWalk',
+  sky: 'chopper',
+  water: 'speedboat',
+});
+
+
+const Player = (
+	props
+) => {
+	
+	//console.log("props", props)
+	
+  	const isMoveKey= (key) => {
+		return arrowKeys.has(key);
+  	};
+
+  	const onArrowKeyDown = (key, e) => {
+	  	e.preventDefault();
+		props.onMove(key);
+  	};
+
+	//
+	const { col, row, direction, type } = props;
+	if (col === 30) {
+				/*let possiblePositions = getFloorsMapPosition(MapBoard);
+					
+				possiblePositions = shuffleArray(possiblePositions)
+				let newCol = possiblePositions[0].x;
+				let newRow  = possiblePositions[0].y;
+				//console.log(newCol, newRow);*/
+				props.SetInitialPosition(20,20);
+							
+		};
+	
+	
+    
+	const personDirection =  'flipped--x:'+  (direction === 'right');
+    const attrs = {
+      row,
+      col,
+      type,
+      block: 'entity',
+      className: personDirection 
+	}
+    
+		/*<Keyboard
+        keyFilter={this.isMoveKey}
+        onKeyDown={this.onArrowKeyDown}*/
+		//  </Keyboard>
+     // >
+    return (
+      
+        <Tile {...attrs} />
+    
+    );
+  };
+
+const  mapStateToPlayerProps  =(
+	state
+) => {
+		
+		//console.log(state);
+		const player = state.gameStats.get('player')
+		//console.log('player no Map', player)
+		const Map = state.Map;
+		const MapBoard = Map.map_board;
+			
+		const col = player.get('col');
+		const row = player.get('row');
+		//console.log(col, row);
+	
+			//console.log('MapBoard', MapBoard);		
+		
+		
+		//console.log()
+		const direction = player.get('direction');
+	
+		const tileRow = MapBoard[row][col];
+			//console.log('tileRow', tileRow);
+		const groundAt =tileRow.type;
+	
+		//simple deifinition for define the kind of 
+		const type = groundToType[groundAt] || 'person';
+	
+		return {
+			col,
+			row,
+			direction,
+			type
+		};
+};
+
+const mapDispatchToPlayerProps = (
+	dispatch
+) =>{
+  return {
+		onMove: (direction) => {
+		  dispatch(toMove(direction));		
+		},	
+	  	SetInitialPosition: (col,row) => {
+	  		dispatch(setInitialPosition(20,20))
+  		}
+  	};
+
+};
+
+const PlayerContainer = connect(
+  mapStateToPlayerProps,
+  mapDispatchToPlayerProps
+)(Player);
+
+
 
 /*------------------------------------------------------------------------*/
 // word area
@@ -1348,6 +1672,7 @@ const Word = (
 		<div className={className} style={style}>
 			<GroundContainer /> 
 			<EntitiesContainer />
+			<PlayerContainer />
 		</div>	
 	);
 };
@@ -1356,18 +1681,23 @@ const Word = (
 const mapStateToWordProps =(
 	state
 )=>{
+	console.log('mapStateToWordProps state', state );
 	let mapConfig = state.mapConfiguration;
+	let mapConfiguration = state.mapConfiguration;
+	let Map = state.map;
 	let gameStats = state.gameStats;
-	let map = state.map;
-	
-	let worldWidth = mapConfig.get('width');
-	let worldHeight = mapConfig.get('height');
-	
 	let player = gameStats.get('player');
+	//console.log('player no maptoWordState', player);
+	
+	let worldWidth = mapConfiguration.get('width');
+	let worldHeight = mapConfiguration.get('height');
+	
+	console.log('mapStateToWordProps player', player);
 	let playerCol = player.get('col');
 	let playerRow = player.get('row');
 	
-	
+	//console.log('col no maptoWordState', playerCol);
+
 	
 	const  CoordToOffSet = (worldDim, camDim, playerCoord) => {
 				  // Number of units that are offscreen for this x or y dimension.
@@ -1399,13 +1729,12 @@ const mapStateToWordProps =(
 				   return clamp(minCoord, maxCoord, coord);
 			   
 	 			};
-						 
-	
+			
 	return {
 
 		MapCoordToOffSetCol: CoordToOffSet(worldWidth,CAM_COLS,playerCol),
 		MapCoordToOffSetRow: CoordToOffSet(worldHeight,CAM_ROWS,playerRow),
-		map: map
+		map: Map
 		
 	}
 	

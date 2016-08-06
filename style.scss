@@ -213,40 +213,6 @@ $entities: (
 
 .hud {
 
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 $cellSize;
-  height: $hudHeight;
-  background: $uiColor;
-
-  &__itemGroup {
-    display: flex;
-
-    &:not(:last-of-type) { margin-right: 1em; }
-  }
-
-  &__item {
-    &:not(:last-of-type) { margin-right: 1em; }
-
-    &::before { margin-right: 0.5em; }
-
-    &--time::before  { content: "⏳"; }
-    &--tapes::before { content: "📼"; }
-  }
-
-  &__label {
-    display: inline-block;
-    margin-right: 0.5em;
-
-    &::after { content: ":"; }
-  }
-
-  &__content {
-    display: inline-block;
-  }
-
   &__powerup {
     display: inline-block;
 
@@ -282,23 +248,11 @@ $entities: (
     10px
   );
 	
- @media screen and (max-height: $totalHeight) {
+@media screen and (max-height: $totalHeight) {
     & { transform: translate(-50%, -50%) scale(0.8); }
   }
 
-  &__instructions {
-    font-size: 2.0rem;
-    margin-top: 1em;
-    // Interesting note here: the `line-height` must be `1em`
-    // or another multiple that results in a number ending in
-    // 0 in order for the tiles to render correctly. Non-0
-    // numbers result in bands between tile rows. This appears
-    // to result from `.game` being scaled down; scaling just
-    // the camera or world etc works as expected—the text has
-    // an effect on the alignment of child nodes of a sibling.
-    line-height: 1em;
-    text-align: justify;
-  }
+ 
 }	
 	
 	
@@ -307,5 +261,7 @@ $entities: (
 .world {
   position: relative;
 }
+
+
 
 

@@ -428,37 +428,10 @@ p, ol, ul, dl, dt, dd, li {
   height: 25px;
   position: absolute; }
 
-.hud {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 25px;
-  height: 80px;
-  background: #555; }
-  .hud__itemGroup {
-    display: flex; }
-    .hud__itemGroup:not(:last-of-type) {
-      margin-right: 1em; }
-  .hud__item:not(:last-of-type) {
-    margin-right: 1em; }
-  .hud__item::before {
-    margin-right: 0.5em; }
-  .hud__item--time::before {
-    content: "⏳"; }
-  .hud__item--tapes::before {
-    content: "📼"; }
-  .hud__label {
-    display: inline-block;
-    margin-right: 0.5em; }
-    .hud__label::after {
-      content: ":"; }
-  .hud__content {
-    display: inline-block; }
-  .hud__powerup {
-    display: inline-block; }
-    .hud__powerup:not(.hud__powerup--collected) {
-      opacity: 0.2; }
+.hud__powerup {
+  display: inline-block; }
+  .hud__powerup:not(.hud__powerup--collected) {
+    opacity: 0.2; }
 
 .flipped--x {
   transform: scale(-1, 1); }
@@ -476,11 +449,6 @@ p, ol, ul, dl, dt, dd, li {
   @media screen and (max-height: 850px) {
     .game {
       transform: translate(-50%, -50%) scale(0.8); } }
-  .game__instructions {
-    font-size: 2.0rem;
-    margin-top: 1em;
-    line-height: 1em;
-    text-align: justify; }
 
 .world {
   position: relative; }
