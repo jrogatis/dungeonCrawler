@@ -998,44 +998,19 @@ const gameStats = (
 	state = GameInitialState, 
 	action
 ) => {
-	const player = state.get('player');
-	console.log(player);
-	let newState;
 	switch (action.type) {
 		
 		case 'SET_PLAYER_POSITION':
 		
-			 newState =  state
+			let newState =  state
 								.updateIn(['player','col'],value => action.col)
 								.updateIn(['player','row'],value => action.row);
 				
 			return newState;
 			
 		case 'MOVE':
-			console.log(state);
-			const col = player.get('col');
-			const row = player.get('row');
 			
-			const xOffsets = Object.freeze({
-  				left:  -1,
-  				right:  1,
-				});
-
-			const yOffsets = Object.freeze({
-  				up:   -1,
-  				down:  1,
-				});
-			const dir = action.direction;
-			
-			const xOffset = xOffsets[dir] || 0;
-			const yOffset = yOffsets[dir] || 0;
-
-			newState =  state
-								.updateIn(['player','col'],value => col + xOffset)
-								.updateIn(['player','row'],value => row + yOffset);
-				
-			return newState;
-			
+			console.log(action.direction);	
 			
 		default: 
 			return state;
@@ -1346,7 +1321,11 @@ const keyCodes =Object.freeze({
   40: "down"
 });
 
-
+const eventToProp = Object.freeze({
+	  keydown: 'onKeyDown',
+	  keyup: 'onKeyUp',
+	  keypress: 'onKeyPress'
+});
 
 const Player = (
 	props
@@ -1454,90 +1433,74 @@ const PlayerContainer = connect(
 /*------------------------------------------------------------------------*/
 //keyboard 
 
-const eventToProp = Object.freeze({
-			  					keydown: 'onKeyDown',
-			  					keyup: 'onKeyUp',
-			  					keypress: 'onKeyPress'
-							});
 
-class  Keyboard extends Component  {
-		
-	constructor(props) {
-		super(props);	
-		//console.log(props);
-		//const { onKeyDown } = props;
-		//console.log('onKeyDown', onKeyDown);
-		this.onKeyEvent = this.onKeyEvent.bind(this)
-	}
-		
+const Keyboard = (
+	props
+) => {
 	//console.log('noKeyboard', props);
-	getEventKey(e) {
+	const getEventKey= (e) => {
 		const key = e.keyCode;
 		return keyCodes[key] || String.fromCharCode(key);
-  }
+  };
 	
- matchesKey(key)  {
-		const { keyFilter } = this.props;
+	const matchesKey = (key) => {
+		const { keyFilter } = props;
 		//console.log('keyFilter', keyFilter(key), 'key do matchesKey ', key)
 		return (
 		  _.isFunction(keyFilter) ?
 		  keyFilter(key) :
 		  key.toLowerCase() === keyFilter.toLowerCase()
 		);
-  }
+  };
 
-  matchesActiveElement (target)  {
+  	const  matchesActiveElement = (target) => {
 		const { activeElement, body } = document;
-		const { activeElementFilter } = this.props;
+		const { activeElementFilter } = props;
 		return (
 		  (activeElement === body) ||
 		  activeElementFilter(activeElement, target)
 		);
   }
 
-  matchesFilter(key, modifiers, e) {
-	  return this.props.filter(key, modifiers, e);
+  	const matchesFilter = (key, modifiers, e) => {
+	  return props.filter(key, modifiers, e);
   }
 	
 	
 	
-	 matchesAllFilters(e) {
-		const key = this.getEventKey(e);
+	const matchesAllFilters = (e) => {
+		const key = getEventKey(e);
 			//console.log('matchesAllFilters',key)
 		return (
-		  this.matchesKey(key) &&
-		  this.matchesActiveElement(e.target) &&
-		  this.matchesFilter(key, e)
+		  matchesKey(key) &&
+		  matchesActiveElement(e.target) &&
+		  matchesFilter(key, e)
 		);
   }
 	
 	
-	 onKeyEvent(e)  {	
-		 const handler = this.props[eventToProp[e.type]];  	
-    	if (this.matchesAllFilters(e)) {
-			 //console.log('handler no onKeyEvent com e',e.type,  handler);
-      		handler(this.getEventKey(e), e);
+	const onKeyEvent = (e) => {
+		 const handler = props[eventToProp[e.type]];
+	  	 //console.log(props)
+    	if (matchesAllFilters(e)) {
+			 //console.log(handler);
+      		handler(getEventKey(e), e);
 			
     	}
 	}
 	
 	//how to avoid multiple listeners....
-	//because
-	componentWillMount() {
-		Object.keys(eventToProp).forEach((event) => {		
-      		window.addEventListener(event, this.onKeyEvent);
-    	});
-	}
+	//because 
+	const list = getEventListeners(window);
+	console.log(list);
 	
-	componentWillUnmount() {
-			Object.keys(this.eventToProp).forEach((event) => {
-      			window.removeEventListener(event, this.onKeyEvent);
-    	});
-	}
-		
-	render(){
-    return this.props.children;
-	}
+	Object.keys(eventToProp).forEach((event) => {
+      window.addEventListener(event, onKeyEvent);
+    });
+	
+
+
+    return props.children;
 
 
 };
