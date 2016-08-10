@@ -196,16 +196,6 @@ const GameLevels = {
  const CAM_COLS   = 800 / PX_PER_COL;
  const CAM_ROWS   = 600 / PX_PER_ROW;
 
-const xOffsets = Object.freeze({
-  				left:  -1,
-  				right:  1,
-				});
-
-const yOffsets = Object.freeze({
-  				up:   -1,
-  				down:  1,
-				});
-
 
 
 
@@ -946,17 +936,123 @@ const activeWeaponHabilities = (state,action) => {
 					
 	switch (action.type) {
 		case 'ACTIVATE_WEAPON':
-			return Immutable.fromJS({
+			return {
 				...state,
 				active:true
-			})
+			}
 		
 		default:
 			return state
-		};		
+		}		
+};
+
+const Map = (
+	state= Immutable.fromJS(newBoard()),
+	action 
+) => {
+			console.log(state);
+			let Map = state.get('map_board');
+			let newMap = []
+				Map.map((row,rIndex)  => {		
+					let newRow = []
+					row.map((tile, coll)=>{
+						newRow.push(createTile(grounds,rIndex, coll, tile));
+					});
+					newMap.push(newRow);
+				})
+
+			let Entities = state.get('entities');
+			let newEntities = []
+				Entities.map((row,rIndex)  => {		
+					let newRow = []
+					row.map((tile, coll)=>{
+						newRow.push(createTile(entities,rIndex, coll, tile));
+					});
+					newEntities.push(newRow);
+				})
+
+
+				state.map_board = newMap;
+				state.entities = newEntities;
+				
+				//console.log(state);
+				return state
+					
+	//console.log(action);			
+		
+};
+		
+//reduder for activeWeapons 
+//for each weapon call activeweapon
+//if no state was passed that means initial state
+const WeaponsHabilities = (
+	state = WeaponsHabilitiesInitialState, 
+	action
+) => {
+	  return state.map(state =>	
+            activeWeaponHabilities(state, action)
+        );
+};
+
+const gameStats = (
+	state = GameInitialState, 
+	action
+) => {
+	console.log(state);
+	const player = state.get('player');
+	console.log(player);
+	
+	let newState;
+	switch (action.type) {
+		
+		case 'SET_PLAYER_POSITION':
+		
+			 newState =  state
+								.updateIn(['player','col'],value => action.col)
+								.updateIn(['player','row'],value => action.row);
+				
+			return newState;
+			
+		case 'MOVE':
+			console.log(state);
+			const col = player.get('col');
+			const row = player.get('row');
+			
+			const xOffsets = Object.freeze({
+  				left:  -1,
+  				right:  1,
+				});
+
+			const yOffsets = Object.freeze({
+  				up:   -1,
+  				down:  1,
+				});
+			const dir = action.direction;
+			
+			const xOffset = xOffsets[dir] || 0;
+			const yOffset = yOffsets[dir] || 0;
+
+			newState =  state
+								.updateIn(['player','col'],value => col + xOffset)
+								.updateIn(['player','row'],value => row + yOffset);
+				
+			return newState;
+			
+			
+		default: 
+			return state;
+	};
+	
 };
 
 
+const mapConfiguration = (
+	state = Immutable.fromJS(MapConfig),
+	action
+) => {
+		return state
+	
+};
 
 
 
@@ -965,107 +1061,20 @@ const MegaInitialState = Immutable.fromJS ({
 	mapConfiguration: Immutable.fromJS(MapConfig),
 	Map:Immutable.fromJS(newBoard()),
 	gameStats:GameInitialState
-});
+})
 
-
-
-const MegaReducer = (
-	state = MegaInitialState,
-	action
-) => {
-	//console.log('MegaReducer', state)
-	const WeaponsHabilitiesState= state.get('WeaponsHabilities');
-	const mapConfigurationState= state.get('mapConfiguration');
-	const MapState= state.get('Map');
-	const gameStatsState = state.get('gameStats');
-	const MapBoard = MapState.get('map_board');
-	const player = gameStatsState.get('player');
-	const Entities = MapState.get('entities');
-	
-	let NewState = state;
-	
-	//map inicializer 
-	let newMap = []
-	MapBoard.map((row,rIndex)  => {		
-		let newRow = []
-		row.map((tile, coll)=>{
-			newRow.push(createTile(grounds,rIndex, coll, tile));
-		});
-		newMap.push(newRow);
-	})
-
-	let newEntities = []
-	Entities.map((row,rIndex)  => {		
-		let newRow = []
-		row.map((tile, coll)=>{
-			newRow.push(createTile(entities,rIndex, coll, tile));
-		});
-		newEntities.push(newRow);
-	})
-
-	NewState = state
-		.setIn(['Map','map_board'],newMap)
-	    .setIn(['Map','entities'],newEntities);
-	// end of map inicializer
-
-	switch (action.type) {
-		
-		case 'SET_PLAYER_POSITION':
-			//console.log('gameStats action', action);
-			 NewState =  state
-								.setIn(['gameStats','player','col'], action.col)
-								.setIn(['gameStats','player','row'], action.row);
-				
-			//console.log('gameStats newState', NewState)
-			break;
-			
-		case 'MOVE':
-			//console.log(state);
-			const col = player.get('col');
-			const row = player.get('row');
-			const playerDir = player.get('direction')
-			
-			const dir = action.direction;
-			//define a direction for the player avatar
-			const newDir = (dir in xOffsets) ? dir : playerDir ;
-			
-			const xOffset = xOffsets[dir] || 0;
-			const yOffset = yOffsets[dir] || 0;
-			
-			let nextCol = col + xOffset;
-			let nextRow = row + yOffset
-			//check is not a wall...
-			let toGround = MapBoard[nextRow][nextCol];
-			if (toGround.type === 'sidewalk') {
-				NewState =  state
-				break;
-				
-			} 
-			let toGroundEntity = Entities[nextRow][nextCol];
-			console.log(toGroundEntity);
-			
-			
-			NewState =  state
-							.setIn(['gameStats','player','col'],nextCol)
-							.setIn(['gameStats','player','row'],nextRow)
-							.setIn(['gameStats','player','direction'],newDir);
-			
-			//console.log(' on MegaReducer NewState no MOVE', NewState);
-			break;
-			
-			
-		default: 
-			return NewState;
-	}
 	
 	
+}
 
-	//console.log(' on MegaReducer NewState ', NewState);
-	
-	return NewState
-	
-} 
 
+const dcApp = combineReducers({
+    WeaponsHabilities,
+	mapConfiguration,
+	Map,
+	gameStats
+	
+})
 
 //End of REDUCERS
 /*------------------------------------------------------------------------*/
@@ -1096,9 +1105,8 @@ const mapStateToWeaponsHabilitiesProps=(
 	ownProps
 ) => {
 		//take care !!! im using immutableJS!!!
-		let WeaponsHabilities = state.get('WeaponsHabilities');
-		let WeaponsState = WeaponsHabilities.get(ownProps.entity);
-		let WeaponState = WeaponsState.get('active')
+		var WeaponsState = state.WeaponsHabilities.get(ownProps.entity);
+		var WeaponState = WeaponsState.get('active')
 				
 		
 	return {
@@ -1191,9 +1199,8 @@ const ActiveHabilities = () => {
 const mapStateToCurrentGameStatsProps=(
 	state
 ) => {
-	//console.log(state)
 		//take care !!! im using immutableJS!!!	
-		var gameStats = state.get('gameStats');
+		var gameStats = state.gameStats;
 		var currentHealth = gameStats.get('health');		
 		var currentLevel = gameStats.get('level');
 		var currentNextLevel = gameStats.get('nextLevel');
@@ -1361,7 +1368,7 @@ const Player = (
 	const arrowKeys = new Set(_.values(keyCodes));
 	
 	const { col, row, direction, type, MapBoard } = props;
-	console.log('personDirection', direction);
+
   	const isMoveKey= (key) => {
 		//console.log('isMoveKey key',key)
 		//console.log('arrowKeys.has(key) ',  arrowKeys.has(key))
@@ -1383,6 +1390,7 @@ const Player = (
 	const personDirection = classNames({
         'flipped--x': direction === 'right'
       });
+
     const attrs = {
       row,
       col,
@@ -1406,20 +1414,17 @@ const Player = (
 const  mapStateToPlayerProps  =(
 	state
 ) => {
-		const  Map  = state.get('Map');
-		const MapBoard = Map.get('map_board');
+		const { Map } = state
 		//console.log(state);
-		const gameStats = state.get('gameStats');
-		const player = gameStats.get('player');
+		const player = state.gameStats.get('player')
 		//console.log('player no Map', player)
 	
-		
+		const MapBoard = Map.map_board;
 		
 		const col = player.get('col');
 		const row = player.get('row');
 		
 		const direction = player.get('direction');
-		
 		const tileRow = MapBoard[row][col];	
 		const groundAt =tileRow.type;
 		//simple deifinition for define the kind of 
@@ -1582,9 +1587,9 @@ const Tile = (
 	props
 ) => {
 
-	const { block, col, row, type, className } = props;
+	const { block, col, row, type } = props;
 	let blockType =  `${block}--${type}`;
-	let cName =  classNames(className,
+	let cName =  classNames(
 							'tile',
 							block,
 							`${block}--${type}`
@@ -1663,8 +1668,8 @@ const Tiles = (
 const mapStateToEntitiesProps = (
 	state
 ) =>{
-	let Map = state.get('Map');
-	let Entities = Map.get('entities');
+	//console.log(state)
+	let Entities = state.Map.entities;
 	
   return {
     block: 'entity',
@@ -1675,8 +1680,8 @@ const mapStateToEntitiesProps = (
 const mapStateToGroundProps = (
 	state
 ) => {
-	let Map = state.get('Map');
-	let MapBoard = Map.get('map_board');
+	
+	let MapBoard = state.Map.map_board;
 	
   return {
     block: 'ground',
@@ -1720,10 +1725,10 @@ const mapStateToWordProps =(
 	state
 )=>{
 	//console.log('mapStateToWordProps state', state );
-	let mapConfig = state.get('mapConfiguration');
-	let mapConfiguration = state.get('mapConfiguration');
-	let Map = state.get('Map');
-	let gameStats = state.get('gameStats');
+	let mapConfig = state.mapConfiguration;
+	let mapConfiguration = state.mapConfiguration;
+	let Map = state.map;
+	let gameStats = state.gameStats;
 	let player = gameStats.get('player');
 	//console.log('player no maptoWordState', player);
 	
@@ -1855,7 +1860,7 @@ const Controler = () => {
 	const { createStore } = Redux;
 	
 		return (
-			<Provider store = {createStore(MegaReducer)}>
+			<Provider store = {createStore(dcApp)}>
 				<Grid fluid>
 					<Header/>
 					<GameBoard/>
