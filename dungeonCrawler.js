@@ -31,8 +31,7 @@ const {combineReducers} = Redux;
 class FontAwesome extends Component{
 	constructor(props) {
 		super(props);
-	}
-	
+	}	
 
   render () {
     let {
@@ -133,12 +132,13 @@ const MapConfig = {
 const GameLevels = {
 	  1: {
 		enemies: {
+		  type: ['DG'],	
 		  qty_range: [10, 12],
 		  level_range: [1, 2]
 		},
-		weapons: ['SR'], 
+		weapons: ['PD'], 
 		recovery: {
-		  qty_range: [10, 13],
+		  qty_range: [5, 8],
 		  value_range: [15, 20]
 		}
 	  },
@@ -177,17 +177,17 @@ const GameLevels = {
 };
 
  const grounds = {
-  GA: { type: 'grass' },
-  GB: { type: 'path' },
-  GC: { type: 'water' },
-  GD: { type: 'sand' },
-  GE: { type: 'forest' },
-  GF: { type: 'road' },
-  GG: { type: 'sidewalk' },
-  GH: { type: 'sky' },
-  GI: { type: 'roadline' },
-  GJ: { type: 'doorway' },
-  GK: { type: 'snow' },
+//  GA: { type: 'grass' },
+//  GB: { type: 'path' },
+//  GC: { type: 'water' },
+//  GD: { type: 'sand' },
+//  GE: { type: 'forest' },
+  GF: { type: 'floor' },
+  GG: { type: 'wall' },
+//  GH: { type: 'sky' },
+//  GI: { type: 'roadline' },
+//  GJ: { type: 'doorway' },
+ GK: { type: 'floor' },
 };
 	
 //defintions of size of col and row	
@@ -256,12 +256,12 @@ const ensureArray = (value) => {
 };
 
 const  getFloorsMapPosition = (Map) => {
-		
+		//console.log(Map);
 		let positions = [];
 		Map.map((row, y ) => {
 			row.map((tile,x) => {
 					//console.log(tile.shortType)
-				if (tile.shortType ===  MapConfig.tileTypes.floor) {
+				if (tile.get('shortType') ===  MapConfig.tileTypes.floor) {
 					positions.push({y: y, x:x});    
 					}
 				}
@@ -272,24 +272,25 @@ const  getFloorsMapPosition = (Map) => {
 		return positions;
 };
 
-/*------------------------------------------------------------------------*/
-//buildModel
+const tileAt = (
+		Map,
+		row,
+		col
+			) =>{
+				let tileTemp;
+				Map.map((Row, rIndex) => {
+							Row.map((tile, cIndex) => {		
+								if (cIndex ===col && rIndex === row) {
+										tileTemp =  tile;
+										}
+								}		
+							)
+						}
+				)
+				return tileTemp	
+			};
 
-const getProp = _.curry((keypath, state) => state.getIn(keypath));
-const setProp = _.curry((keypath, value, state) => state.setIn(keypath, value));
 
-
-const buildModel = (keypath, props) => {
-  keypath = ensureArray(keypath);
-  return props.reduce((api, prop) => {
-    prop = ensureArray(prop);
-    const camelized = _.capitalize(_.camelCase(prop));
-    const propKeypath = [...keypath, ...prop];
-    api[`get${camelized}`] = getProp(propKeypath);
-    api[`set${camelized}`] = setProp(propKeypath);
-    return api;
-  }, {});
-};
 
 /*------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------*/
@@ -305,37 +306,13 @@ const createTile = _.curry((defs, row, col, shortType) => {
   );
 });
 
-const parseLevelGrid = _.curry((defs, data) => {	
-  return data
-    .map((row) => row.split(splitter))
-    .map((row, rowIdx) => {
-      const createItem = _.rearg(createTile(defs, rowIdx), 1, 0);
-      return row.map(createItem);
-    });
-});
-
-const parseGrounds = parseLevelGrid(grounds);
-//const parseEntities = parseLevelGrid(entities);
 
 /*------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------*/
 //habilities 
+
 const returnTrue = () => true;
  const not = _.negate;
-
-//aqui ele pega o state mas não sei da onde....
-const buildAbility = (prop) => (state, entity) => {
-  const fn = entity.get(prop);
-  return _.isFunction(fn) ? fn(state, entity) : false;
-};
-
-const canBlock = buildAbility('canBlock');
-const canCollect = buildAbility('canCollect');
-const canDie = buildAbility('canDie');
-const canDestroy = buildAbility('canDestroy');
-const canKill = buildAbility('canKill');
-const canWin = buildAbility('canWin');
-
 
 const hasPowerup = _.curry((powerup, state, entity) => {
   return state.get('powerups').includes(powerup);
@@ -350,10 +327,11 @@ const hasSunglasses = hasPowerup('sunglasses');
 /*------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------*/
 //entities
-/*const canBlock = returnTrue;
+const canBlock = returnTrue;
 const canCollect = returnTrue;
 const canDestroy = returnTrue;
-const canKill = returnTrue;*/
+const canKill = returnTrue;
+const canPowerUp = returnTrue;
 //const canWin = (s) => s.get('numTapes') >= level.getNumTapesTotal(s);
 
 const blocksUnless = (hasAbility) => ({
@@ -370,7 +348,7 @@ const entities = {
   '01': { type: 'start' },
   // Special
   SA: { type: 'tape', canCollect },
-  SB: { type: 'door', canWin, canDestroy: canWin, canBlock: not(canWin) },
+  //SB: { type: 'door', canWin, canDestroy: canWin, canBlock: not(canWin) },
   SC: { type: 'person' },
   SD: { type: 'invisible', canBlock },
   SE: { type: 'ghost' },
@@ -380,6 +358,8 @@ const entities = {
   PC: { type: 'speedboat',  canCollect },
   PD: { type: 'boots',      canCollect },
   PE: { type: 'hammer',     canCollect },
+ //power up	
+  KI: { type: 'ambulance', canCollect, canPowerUp},	
   // Bounds
   BA: { type: 'treeA',    canBlock },
   BB: { type: 'treeB',    canBlock },
@@ -412,14 +392,14 @@ const entities = {
   CC: { type: 'musichall', canBlock },
   CD: { type: 'moai',      ...blocksUnless(hasHammer) },
   // The sign
-  ZL: { type: 'storesign--v', canBlock },
+ /* ZL: { type: 'storesign--v', canBlock },
   ZM: { type: 'storesign--i', canBlock },
   ZN: { type: 'storesign--d', canBlock },
   ZO: { type: 'storesign--e', canBlock },
   ZP: { type: 'storesign--o', canBlock },
   ZQ: { type: 'storesign--s', canBlock },
   ZR: { type: 'storesign--t', canBlock },
-  ZS: { type: 'storesign--r', canBlock },
+  ZS: { type: 'storesign--r', canBlock },*/
   // Killers without items
   DA: { type: 'sun',     canKill: not(hasSunglasses) },
   DB: { type: 'corn',    canBlock: not(hasSilverware), canDestroy: hasSilverware },
@@ -437,7 +417,6 @@ const entities = {
   KF: { type: 'taxi',      canKill },
   KG: { type: 'firetruck', canKill },
   KH: { type: 'police',    canKill },
-  KI: { type: 'ambulance', canKill },
   KJ: { type: 'cactus',    canKill },
   KK: { type: 'tornado',   canKill },
 };
@@ -787,7 +766,7 @@ const buildItems = (level) => {
       items.push({
 		  //snake
 		  //aqui randomiza os inimigos
-        type: 'DG',
+        type: config.enemies.type[0],
         data: {          
           level: RandomIntFromArray(config.enemies.level_range)
         }
@@ -807,7 +786,7 @@ const buildItems = (level) => {
     var weaponKey = Math.floor(Math.random() * config.weapons.length);
     items.push({
 		//
-      type: "PE",
+      type:config.weapons[weaponKey],
       data: {
         weapon: config.weapons[weaponKey]
       }
@@ -817,14 +796,6 @@ const buildItems = (level) => {
         type:"DF"        
       });
     }
-    /*items.push({
-      type: "SC",//Player
-      data: {
-        level: 1,
-        health: 100,
-        weapon: 'PE'
-      }
-    });*/
     return items;
   };
 
@@ -851,9 +822,6 @@ const	placeItems = (
 		let possiblePositions = getFloorsPosition(Map);
 		possiblePositions = shuffleArray(possiblePositions)
 		//aqui para cada possibilidade sorteio uma para colocar um item... 
-		//console.log(JSON.stringify(fp));
-		//console.log( "shuffed " + JSON.stringify(shuffleArray(fp)));
-		//console.log(JSON.stringify(Map));
 		let entities = [];
 		//first bild the intere possible map...		
 					Map.map((row, yIndex)=>{
@@ -896,7 +864,7 @@ const newBoard = () => {
 const WeaponsHabilitiesInitialState = Immutable.fromJS({	
 				
 					gun: {
-						active:true
+						active:false
 						},
 					knife: {
 						active:false
@@ -917,7 +885,7 @@ const WeaponsHabilitiesInitialState = Immutable.fromJS({
 						active:false
 						},
 					speedboat: {
-						active:true
+						active:false
 						},
 					silverware:  {
 						active:false
@@ -926,7 +894,8 @@ const WeaponsHabilitiesInitialState = Immutable.fromJS({
   
 	});
 
-const GameInitialState = Immutable.fromJS({					
+const GameInitialState = Immutable.fromJS({	
+	  started: false,	
 	  deaths: 0,
 	  health: 3,
 	  attack: 0,
@@ -956,18 +925,13 @@ const activeWeaponHabilities = (state,action) => {
 		};		
 };
 
-
-
-
-
 const MegaInitialState = Immutable.fromJS ({
 	 WeaponsHabilities: WeaponsHabilitiesInitialState,
 	mapConfiguration: Immutable.fromJS(MapConfig),
 	Map:Immutable.fromJS(newBoard()),
 	gameStats:GameInitialState
+	
 });
-
-
 
 const MegaReducer = (
 	state = MegaInitialState,
@@ -982,45 +946,60 @@ const MegaReducer = (
 	const player = gameStatsState.get('player');
 	const Entities = MapState.get('entities');
 	
-	let NewState = state;
 	
-	//map inicializer 
-	let newMap = []
-	MapBoard.map((row,rIndex)  => {		
-		let newRow = []
-		row.map((tile, coll)=>{
-			newRow.push(createTile(grounds,rIndex, coll, tile));
-		});
-		newMap.push(newRow);
-	})
+	//build conditions
 
-	let newEntities = []
-	Entities.map((row,rIndex)  => {		
-		let newRow = []
-		row.map((tile, coll)=>{
-			newRow.push(createTile(entities,rIndex, coll, tile));
-		});
-		newEntities.push(newRow);
-	})
-
-	NewState = state
-		.setIn(['Map','map_board'],newMap)
-	    .setIn(['Map','entities'],newEntities);
-	// end of map inicializer
-
-	switch (action.type) {
-		
-		case 'SET_PLAYER_POSITION':
-			//console.log('gameStats action', action);
-			 NewState =  state
-								.setIn(['gameStats','player','col'], action.col)
-								.setIn(['gameStats','player','row'], action.row);
-				
-			//console.log('gameStats newState', NewState)
-			break;
+	
+	
+	//let NewState;
+	if (gameStatsState.get('started') === false) {
+		//map inicializer 
+		let newMapBoard = []
+		MapBoard.map((row,rIndex)  => {		
+			let newRow = []
+			row.map((tile, coll)=>{
+				let newTile = Immutable.fromJS(createTile(grounds,rIndex, coll, tile));
+				newRow.push(newTile);					
+			});
+			newMapBoard.push(Immutable.fromJS(newRow));
 			
+		
+		});
+		
+		newMapBoard = Immutable.fromJS(newMapBoard);
+		//console.log('OldMapBoard', MapBoard)
+		//console.log('newMapBoard', newMapBoard)
+		
+		let newEntities = []
+		Entities.map((row,rIndex)  => {		
+			let newRow = []
+			row.map((tile, coll)=>{
+				let newTile = Immutable.fromJS(createTile(entities,rIndex, coll, tile));
+				newRow.push(newTile);															
+				});
+	
+			newEntities.push(newRow);
+		});
+
+
+		let newPos = shuffleArray(getFloorsMapPosition(newMapBoard));	 
+		//console.log('newPos', newPos);	
+
+		return  state
+			.setIn(['Map','map_board'], Immutable.fromJS(newMapBoard))
+			.setIn(['Map','entities'], Immutable.fromJS(newEntities))
+			.setIn(['gameStats','player','col'], newPos[0].x)
+			.setIn(['gameStats','player','row'], newPos[0].y)
+			.setIn(['gameStats','started'],true);
+		// end of map inicializer	
+
+	}
+		
+	switch (action.type) {
+					
 		case 'MOVE':
-			//console.log(state);
+			//console.log(state.toJS());
+			//console.log('saco', MapBoard.get(0).get(0));
 			const col = player.get('col');
 			const row = player.get('row');
 			const playerDir = player.get('direction')
@@ -1035,34 +1014,59 @@ const MegaReducer = (
 			let nextCol = col + xOffset;
 			let nextRow = row + yOffset
 			//check is not a wall...
-			let toGround = MapBoard[nextRow][nextCol];
-			if (toGround.type === 'sidewalk') {
-				NewState =  state
-				break;
+			let toGround = MapBoard.getIn([nextRow, nextCol]);
 				
-			} 
-			let toGroundEntity = Entities[nextRow][nextCol];
-			console.log(toGroundEntity);
+			if (toGround.get('type') === 'wall') {return  state;;} 
 			
+			//console.log(Entities);
+			const toGroundEntity = Entities.getIn([nextRow, nextCol])
 			
-			NewState =  state
-							.setIn(['gameStats','player','col'],nextCol)
-							.setIn(['gameStats','player','row'],nextRow)
-							.setIn(['gameStats','player','direction'],newDir);
+			//have a entity
+			const esOccupado = !!toGroundEntity;
+			const type = esOccupado && toGroundEntity.get('type');
+		
 			
+			const move = (s) => s.setIn(['gameStats','player','col'],nextCol)
+								 .setIn(['gameStats','player','row'],nextRow);														   		
+			const orient = (s) => s.setIn(['gameStats','player','direction'],newDir);	
+			const attackUp = (s) => s.setIn(['gameStats','attack'],gameStatsState.get('attack') + 10);
+			const collect = (s) =>(type === 'ambulance') ? attackUp(s): s;		
+		    const removeEntity = (s) => s.setIn(['Map','entities',nextRow,nextCol], null); 
+									   
+									  
+			
+			const buildAbility = (prop)  => {
+				const fn = toGroundEntity.get(prop);
+				//console.log('fn', fn);
+				return _.isFunction(fn) ? true : false;
+			};
+		
+			const whenEntity = _.curry((condition, update, s) => {
+				//console.log('whenEntity', condition, update)
+    			return (esOccupado && condition )? update(s) : s;
+  			});
+						
+			if (esOccupado) {
+				const canBlock = buildAbility('canBlock');
+				const canCollect = buildAbility('canCollect');
+				const canDie = buildAbility('canDie');
+				const canDestroy = buildAbility('canDestroy');
+				const canKill = buildAbility('canKill');
+				//const canWin = buildAbility('canWin');
+				//console.log('test', test);
+			}
+		
 			//console.log(' on MegaReducer NewState no MOVE', NewState);
-			break;
 			
-			
+			return  _.flow(
+						move,
+						orient,
+						whenEntity(canCollect, _.flow(collect, removeEntity))
+						)(state);
+		
 		default: 
-			return NewState;
-	}
-	
-	
-
-	//console.log(' on MegaReducer NewState ', NewState);
-	
-	return NewState
+			return state;
+	}	
 	
 } 
 
@@ -1070,14 +1074,6 @@ const MegaReducer = (
 //End of REDUCERS
 /*------------------------------------------------------------------------*/
 //Actions
-const setInitialPosition=(colToSet, rowToSet)=> {
-		return {
-			type:'SET_PLAYER_POSITION',
-			col:colToSet,
-			row:rowToSet
-		}
-		
-};
 
 const toMove=(direction) => {
 	//console.log('no to move', direction)
@@ -1337,12 +1333,13 @@ const CurrentNextLevelContainer = connect(
 //player area
 
 const groundToType = Object.freeze({
-  doorway: 'dancer',
-  road: 'bike',
-  roadline: 'bike',
-  sidewalk: 'personWalk',
-  sky: 'chopper',
-  water: 'speedboat',
+  //doorway: 'dancer',
+//  road: 'bike',
+//  roadline: 'bike',
+//  sidewalk: 'personWalk',
+//  sky: 'chopper',
+//  water: 'speedboat',
+floor: 'personWalk'
 });
 
 const keyCodes =Object.freeze({
@@ -1352,8 +1349,6 @@ const keyCodes =Object.freeze({
   40: "down"
 });
 
-
-
 const Player = (
 	props
 ) => {
@@ -1361,7 +1356,7 @@ const Player = (
 	const arrowKeys = new Set(_.values(keyCodes));
 	
 	const { col, row, direction, type, MapBoard } = props;
-	console.log('personDirection', direction);
+	//console.log('personDirection', direction);
   	const isMoveKey= (key) => {
 		//console.log('isMoveKey key',key)
 		//console.log('arrowKeys.has(key) ',  arrowKeys.has(key))
@@ -1412,17 +1407,13 @@ const  mapStateToPlayerProps  =(
 		const gameStats = state.get('gameStats');
 		const player = gameStats.get('player');
 		//console.log('player no Map', player)
-	
-		
-		
 		const col = player.get('col');
 		const row = player.get('row');
-		
+
 		const direction = player.get('direction');
-		
-		const tileRow = MapBoard[row][col];	
-		const groundAt =tileRow.type;
-		//simple deifinition for define the kind of 
+	
+		const groundAt =tileAt(MapBoard,row,col).get('type');
+
 		const type = groundToType[groundAt] || 'person';
 	
 		return {
@@ -1439,14 +1430,9 @@ const mapDispatchToPlayerProps = (
 ) =>{
 	  
   return {
-	  
-	  
 		onMove: (direction) => {			
 		  dispatch(toMove(direction));		
-		},	
-	  	SetInitialPosition: (col,row) => {
-	  		dispatch(setInitialPosition(col,row))
-  		}
+		}		  	
   	};
 
 };
@@ -1468,7 +1454,7 @@ const eventToProp = Object.freeze({
 			  					keypress: 'onKeyPress'
 							});
 
-class  Keyboard extends Component  {
+class Keyboard extends Component  {
 		
 	constructor(props) {
 		super(props);	
@@ -1550,7 +1536,6 @@ class  Keyboard extends Component  {
 
 };
 
-
 const mapStateToKeyboardProps = (
 	state,
 	ownProps
@@ -1572,16 +1557,13 @@ const mapStateToKeyboardProps = (
 const KeyboardContainer = connect(mapStateToKeyboardProps)(Keyboard);
 
 /*-----------------------------------------------------------------------*/
-
-
 /*------------------------------------------------------------------------*/
 // word area
-
 
 const Tile = (
 	props
 ) => {
-
+	//console.log(props);
 	const { block, col, row, type, className } = props;
 	let blockType =  `${block}--${type}`;
 	let cName =  classNames(className,
@@ -1605,12 +1587,19 @@ const TilesRow = (
 ) => {
 	const { tiles } = props
 	
+	
+	
 	const renderTile = (
 		tile
 	) => {
 		if ( tile != null ) {
+			//console.log('renderTile',tile);
 			const { block } = props;
-			const { type, row, col } = tile;
+			const type = tile.get('type');
+			const row = tile.get('row');
+			const col = tile.get('col');
+			
+			//const { type, row, col } = tile;
 			let key = type + '-' + row + '-' + col;	
 			return (
 				  <Tile
@@ -1635,10 +1624,11 @@ const TilesRow = (
 
 const Tiles = (
 	props
-) => {	
 	
+) => {	
+	//console.log('props no Tiles', props);
 	const renderTilesRow = (row, i) =>{
-		
+			
 		 const { block } = props;
     		return (
 				<TilesRow
@@ -1698,7 +1688,8 @@ const Word = (
 	props	
 ) => {
 	
-	const className = 'world ';
+	//const className = 'world ';
+	const className = classNames('world', { twemoji: !hasEmoji });
 	
     //calc the inicial offset values 
 	//positioning the map on center of the camera
@@ -1801,7 +1792,6 @@ const GameBoard = () => {
 		)
 }
 	
-
 /*------------------------------------------------------------------------*/
 
 const Header = () => {
