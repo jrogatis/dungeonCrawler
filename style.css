@@ -9,6 +9,16 @@ p, ol, ul, dl, dt, dd, li {
 *, *::before, *::after {
   box-sizing: border-box; }
 
+body {
+  background: #000000;
+  /* Old browsers */
+  background: -moz-radial-gradient(center, ellipse cover, #000000 0%, #cbdaed 48%, #000000 100%);
+  /* FF3.6-15 */
+  background: -webkit-radial-gradient(center, ellipse cover, #000000 0%, #cbdaed 48%, #000000 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: radial-gradient(ellipse at center, #000000 0%, #cbdaed 48%, #000000 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */ }
+
 #mountNode div #Header {
   text-align: center; }
   #mountNode div #Header label {
@@ -69,6 +79,11 @@ p, ol, ul, dl, dt, dd, li {
   .twemoji .entity--sword::before {
     content: '';
     background-image: twemoji-url("🗡"); }
+  .entity--highVoltage::before {
+    content: "⚡️"; }
+  .twemoji .entity--highVoltage::before {
+    content: '';
+    background-image: twemoji-url("⚡️"); }
   .entity--knife::before {
     content: "🔪"; }
   .twemoji .entity--knife::before {
@@ -441,7 +456,8 @@ p, ol, ul, dl, dt, dd, li {
 .camera {
   overflow: hidden;
   width: 100%;
-  height: 100%; }
+  height: 100%;
+  background-color: black; }
 
 .game {
   position: absolute;
