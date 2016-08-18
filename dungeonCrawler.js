@@ -28,6 +28,8 @@ const { Component, PropTypes} = React;
 const { Provider, connect } = ReactRedux;
 const {combineReducers} = Redux;
 
+const returnTrue = () => true;
+const not = _.negate;
 
 class FontAwesome extends Component{
 	constructor(props) {
@@ -140,7 +142,8 @@ const GameLevels = {
 		},
 		  //weapons...
 		weapons: {
-			type: ['GU']		 
+			type: ['GU'],
+			name: ['gun']
 		}, 
 		//boots
 		abilities: {
@@ -159,10 +162,97 @@ const GameLevels = {
 		}
 		  
 	  },
+	2: {
+		enemies: {
+			//bananas
+			type: ['BW'],	
+			qty_range: [10, 12],
+			level_range: [1, 2]
+		},
+		  //weapons...
+		weapons: {
+			type: ['EC'],
+			name: ['knife']
+		}, 
+		//sumglasses
+		abilities: {
+			type: ['PA'],	
+		},
+		//anbulance
+		health: {
+			type: ['EB'],	
+			qty_range: [1, 3],
+			value_range: [15, 20]
+		},
+		 //monkey 
+		boss: {
+			type:['BX'],
+			power: [90]
+		}
+		  
+	  },
+	3: {
+		enemies: {
+			//gator
+			type: ['KB'],	
+			qty_range: [10, 12],
+			level_range: [1, 2]
+		},
+		  //weapons...
+		weapons: {
+			type: ['PE'],
+			name: ['hammer']
+		}, 
+		//speedboot
+		abilities: {
+			type: ['PC'],	
+		},
+		//anbulance
+		health: {
+			type: ['EB'],	
+			qty_range: [1, 3],
+			value_range: [15, 20]
+		},
+		 //monkey 
+		boss: {
+			type:['DE'],
+			power: [135]
+		}
+		  
+	  },
+	4: {
+		enemies: {
+			//rabbit
+			type: ['BD'],	
+			qty_range: [10, 12],
+			level_range: [1, 2]
+		},
+		  //weapons...
+		weapons: {
+			type: ['EF'],
+			name: ['bow']
+		}, 
+		//silver
+		abilities: {
+			type: ['PB'],	
+		},
+		//anbulance
+		health: {
+			type: ['EB'],	
+			qty_range: [1, 3],
+			value_range: [15, 20]
+		},
+		 //monkey 
+		boss: {
+			type:['BY'],
+			power: [135]
+		}
+		  
+	  },
 	  
 };
 
- const grounds = {
+const grounds = {
 //  GA: { type: 'grass' },
 //  GB: { type: 'path' },
 //  GC: { type: 'water' },
@@ -175,6 +265,53 @@ const GameLevels = {
 //  GJ: { type: 'doorway' },
  GK: { type: 'floor' },
 };
+
+const WeaponsHabilitiesInitialState = Immutable.fromJS({	
+				
+					gun: {
+						active:false
+						},
+					knife: {
+						active:false
+						},
+					hammer: {
+						active:false
+						},
+					bow:  {
+						active:false
+						}, 
+					boots: {
+						active:false
+						},
+					sunglasses: {
+						active:false
+						},
+					speedboat: {
+						active:false
+						},
+					silverware:  {
+						active:false
+						}				
+						
+  
+	});
+
+const GameInitialState = Immutable.fromJS({	
+	  hasWon:false,
+	  started: false,	
+	  deaths: 0,
+	  health: 4,
+	  attack: 0,
+	  level: 1,
+	  nextLevel: 45,
+	  player: {
+		 row: 0,
+		 col: 0,
+		direction: 'left' 
+	  }
+					
+});
+
 	
 //defintions of size of col and row	
  const PX_PER_COL = 25;
@@ -193,6 +330,8 @@ const yOffsets = Object.freeze({
 				});
 
 /*------------------------------------------------------------------------*/
+
+
 /*------------------------------------------------------------------------*/
 //utils
 
@@ -267,9 +406,6 @@ const createTile = _.curry((defs, row, col, shortType) => {
 /*------------------------------------------------------------------------*/
 //habilities 
 
-const returnTrue = () => true;
- const not = _.negate;
-
 const buildAbility = (prop) => (state,entity)  => {
 	const fn = entity.get(prop);			
 	return _.isFunction(fn) ? fn(state, entity)  : false;
@@ -281,11 +417,20 @@ const hasPowerup = _.curry((powerup, state, entity) => {
 });
 
 const hasBoots = hasPowerup('boots');
-const hasHammer = hasPowerup('hammer');
 const hasSilverware = hasPowerup('silverware');
 const hasSpeedboat = hasPowerup('speedboat');
 const hasSunglasses = hasPowerup('sunglasses');
+
+const hasHammer = hasPowerup('hammer');
 const hasGun = hasPowerup('gun');
+const hasBow = hasPowerup('bow');
+const hasKnife = hasPowerup('knife');
+
+const hasTheWeaponForThatBoss = (s) => {
+		let weapon = GameLevels[s.getIn(['gameStats','level'])].weapons.name[0];
+		//console.log('hasTheWeaponForThatBoss', weapon,  s.getIn(['WeaponsHabilities',weapon, 'active']));
+		return s.getIn(['WeaponsHabilities',weapon, 'active']) ;
+	}
 
 /*------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------*/
@@ -297,15 +442,13 @@ const canKill = returnTrue;
 const canPowerUp = returnTrue;
 const canAddAbilities = returnTrue;
 const canWin = (s) => {
+	
 	let curAttackPower = s.getIn(['gameStats','attack']) 
 	let bossAtackPower =  GameLevels[s.getIn(['gameStats','level'])].boss.power[0] 
-	let ret = hasGun;
-	//console.log(curAttackPower, bossAtackPower, ret)
-	if (curAttackPower >= bossAtackPower
-	   && hasGun ) {
-		return true;
-	}
-		return false;
+	
+	//console.log('canWin', curAttackPower, bossAtackPower, hasTheWeaponForThatBoss(s))
+	let ret = (curAttackPower >= bossAtackPower) && hasTheWeaponForThatBoss(s) 
+	return ret ;
 };
 
 const blocksUnless = (hasAbility) => ({
@@ -327,22 +470,33 @@ const entities = {
 	PB: { type: 'silverware', canAddAbilities },
 	PC: { type: 'speedboat',  canAddAbilities },
 	PD: { type: 'boots',      canAddAbilities },
-	PE: { type: 'hammer',     canAddAbilities },
-	//wheapons
-	GU:{ type:	'gun',		  canAddAbilities },
 	
-	DF: { type: 'santa',   canWin, canDestroy: canWin, canKill: not(hasGun), ...blocksUnless(hasGun) },
-	DG: { type: 'shit',    canKill: not(hasBoots),  canDestroy: hasBoots, canPowerUp: hasBoots, ...blocksUnless(hasBoots) },
-
+	//wheapons
+	GU:{ type:	'gun',		canAddAbilities },
+	EC:{ type:	'knife',	canAddAbilities },
+	PE: { type: 'hammer',    canAddAbilities },
+	EF:{ type:	'bow',		canAddAbilities },
+	
+	//boss
+	DF: { type: 'santa',  	canWin, canDestroy: canWin, canKill: not(canWin), ...blocksUnless(canWin) },
+	BX: { type: 'monkey', 	canWin, canDestroy: canWin, canKill: not(canWin), ...blocksUnless(canWin) },
+	DE: { type: 'snowman', canWin, canDestroy: canWin, canKill: not(canWin), ...blocksUnless(canWin) },
+	BY: { type: 'elephant', canWin, canDestroy: canWin, canKill: not(canWin), ...blocksUnless(canWin) },
+	
+	//enimies
+	DG: { type: 'shit',    	canKill: not(hasBoots),  canDestroy: hasBoots, canPowerUp: hasBoots, ...blocksUnless(hasBoots) },
+	BW: { type: 'banana',  	canKill: not(hasSunglasses),  canDestroy: hasSunglasses, canPowerUp: hasSunglasses, ...blocksUnless(hasSunglasses) },
+	KB: { type: 'gator',     canKill: not(hasSpeedboat),  canDestroy: hasSpeedboat, canPowerUp: hasSpeedboat, ...blocksUnless(hasSpeedboat) },
+	BD: { type: 'rabbit',  canKill: not(hasSilverware),  canDestroy: hasSilverware, canPowerUp: hasSilverware, ...blocksUnless(hasSilverware) },
+	
 	EB: { type: 'ambulance', canCollect },
 	EA: { type: 'highVoltage', canCollect },
 	
+	/* Bounds
 	
-	// Bounds
 	BA: { type: 'treeA',    canBlock },
 	BB: { type: 'treeB',    canBlock },
 	BC: { type: 'building', canBlock },
-	BD: { type: 'rabbit',   ...blocksUnless(hasHammer) },
 	BE: { type: 'chicken',  ...blocksUnless(hasHammer) },
 	BF: { type: 'fishA',    ...blocksUnless(hasSpeedboat) },
 	BG: { type: 'fishB',    ...blocksUnless(hasSpeedboat) },
@@ -361,9 +515,7 @@ const entities = {
 	BT: { type: 'willows',  canBlock },
 	BU: { type: 'shell',    ...blocksUnless(hasBoots) },
 	BV: { type: 'snowflake', canBlock },
-	BW: { type: 'banana',    canDestroy: hasSilverware },
-	BX: { type: 'monkey',    ...blocksUnless(hasHammer) },
-	BY: { type: 'elephant',  ...blocksUnless(hasHammer) },
+	
 	BZ: { type: 'houseA',    canBlock },
 	CA: { type: 'houseB',    canBlock },
 	CB: { type: 'mart',      canBlock },
@@ -377,17 +529,17 @@ const entities = {
 	ZP: { type: 'storesign--o', canBlock },
 	ZQ: { type: 'storesign--s', canBlock },
 	ZR: { type: 'storesign--t', canBlock },
-	ZS: { type: 'storesign--r', canBlock },*/
+	ZS: { type: 'storesign--r', canBlock },
 	// Killers without items
 	DA: { type: 'sun',     canKill: not(hasSunglasses) },
 	DB: { type: 'corn',    canBlock: not(hasSilverware), canDestroy: hasSilverware },
 	DC: { type: 'wave',    canBlock: not(hasSpeedboat) },
 	DD: { type: 'fire',    canKill: not(hasBoots), canDestroy: hasBoots },
-	DE: { type: 'snowman', canKill: not(hasHammer), canDie: hasHammer },
+	
 	
 	// Killers always
 	KA: { type: 'bee',       canKill },
-	KB: { type: 'gator',     canKill },
+	
 	KC: { type: 'snake',     canKill },
 	KD: { type: 'carA',      canKill },
 	KE: { type: 'carB',      canKill },
@@ -395,14 +547,11 @@ const entities = {
 	KG: { type: 'firetruck', canKill },
 	KH: { type: 'police',    canKill },
 	KJ: { type: 'cactus',    canKill },
-	KK: { type: 'tornado',   canKill },
+	KK: { type: 'tornado',   canKill },*/
 };
 
 
-
-
 /*------------------------------------------------------------------------*/
-
 /*------------------------------------------------------------------------*/
 //map generator
 
@@ -697,34 +846,6 @@ class MapBuilder  {
 		}
 	  };
 	
-	 /*getFloorsPosition  (map)  {
-		var positions = [];
-		for ( var y in map ) {
-		  for ( var x = 0; x < map[y].length; x++ ) {
-			if ( map[y][x] == MapConfig.tileTypes.floor || !isNaN(map[y][x]) ) {
-			  positions.push({y: y, x:x});          
-			}
-		  }
-		}
-    	return positions;
-  	};*/
-	
-	 /*placeItems  (
-		map,
-		items
-	)  {
-		var positions = shuffleArray(this.getFloorsPosition(map));   
-		var orderedItems = shuffleArray(items);
-		var position;
-		for ( var key in orderedItems) {
-		  position = positions.shift();
-		  map[position.y][position.x] = orderedItems[key].type;
-		  orderedItems[key].position = position;
-		}
-  };*/
-	
-	
-	//build  (items) {
 	build  () {
 		
 		let map = this.newMap();  	
@@ -778,11 +899,15 @@ const buildItems = (level) => {
     return items;
   };
 
+
+//need to check if the item is not close to a wall... because 
+//can block a corridor	  
 const  getFloorsPosition = (map) => {
 		var positions = [];
 		for ( var y in map ) {
 		  for ( var x = 0; x < map[y].length; x++ ) {
 			if ( map[y][x] == MapConfig.tileTypes.floor || !isNaN(map[y][x]) ) {
+				
 			  positions.push({y: y, x:x});          
 			}
 		  }
@@ -792,10 +917,9 @@ const  getFloorsPosition = (map) => {
 	
 const	placeItems = (
 		Map,
-		Rooms,
 		items
 	)  => {
-		//console.log(Rooms);
+		
 		
 		let orderedItems = shuffleArray(items);
 		let possiblePositions = getFloorsPosition(Map);
@@ -820,11 +944,11 @@ const	placeItems = (
   };
 
 
-const newBoard = () => {
+const newBoard = (level) => {
     var builder = new MapBuilder();
    // var data = builder.build(items);
     var data = builder.build();
-	 let items = placeItems(data.map, data.rooms, buildItems(1));
+	 let items = placeItems(data.map, buildItems(level));
 	//console.log(JSON.stringify(items));	
     return {
       ground: data.map,
@@ -839,54 +963,7 @@ const newBoard = () => {
 /*------------------------------------------------------------------------*/
 //REDUCERS area
 //active weapon reducer
-const WeaponsHabilitiesInitialState = Immutable.fromJS({	
-				
-					gun: {
-						active:false
-						},
-					knife: {
-						active:false
-						},
-					hammer: {
-						active:false
-						},
-					bow:  {
-						active:false
-						}, 
-					sword: {
-						active:false
-					},
-					boots: {
-						active:false
-						},
-					sunglasses: {
-						active:false
-						},
-					speedboat: {
-						active:false
-						},
-					silverware:  {
-						active:false
-						}				
-						
-  
-	});
 
-const GameInitialState = Immutable.fromJS({	
-	  hasWon:false,
-	  started: false,	
-	  deaths: 0,
-	  health: 3,
-	  attack: 0,
-	  level: 1,
-	  nextLevel: 45,
-	  player: {
-		 row: 0,
-		 col: 0,
-		direction: 'left' 
-	  }
-					
-});
 
 //called from Weapons
 //define if the weapon is active or no
@@ -904,108 +981,100 @@ const activeWeaponHabilities = (state,action) => {
 		};		
 };
 
-const MegaInitialState = Immutable.fromJS ({
-	 WeaponsHabilities: WeaponsHabilitiesInitialState,
-	mapConfiguration: Immutable.fromJS(MapConfig),
-	Map:Immutable.fromJS(newBoard()),
-	gameStats:GameInitialState
+const MapInicializer = (level) => {
 	
-});  
-
-const MegaReducer = (
-	state = MegaInitialState,
-	action
-) => {
-	//console.log('MegaReducer', state)
-	const WeaponsHabilitiesState= state.get('WeaponsHabilities');
-	const mapConfigurationState= state.get('mapConfiguration');
-	const MapState= state.get('Map');
-	const gameStatsState = state.get('gameStats');
-	const Ground = MapState.get('ground');
-	const player = gameStatsState.get('player');
-	const Entities = MapState.get('entities');
-
-	//let NewState;
-	if (gameStatsState.get('started') === false) {
-		//map inicializer 
-		let newGround = []
-		Ground.map((row,rIndex)  => {		
+	let Map = Immutable.fromJS(newBoard(level))
+	let newGround = []
+		Map.get('ground').map((row,rIndex)  => {		
 			let newRow = []
 			row.map((tile, coll)=>{
 				let newTile = Immutable.fromJS(createTile(grounds,rIndex, coll, tile));
 				newRow.push(newTile);					
 			});
-			newGround.push(Immutable.fromJS(newRow));
-			
+			newGround.push(Immutable.fromJS(newRow));	
 		
 		});
 		
 		newGround = Immutable.fromJS(newGround);
-		//console.log('OldGround', Ground)
-		//console.log('newGround', newGround)
-		
-		
-		
+	
 		let newEntities = []
-		Entities.map((row,rIndex)  => {		
+		Map.get('entities').map((row,rIndex)  => {		
 			let newRow = []
-			row.map((tile, coll)=>{
-				
+			row.map((tile, coll)=>{				
 				let newTile = Immutable.fromJS(createTile(entities,rIndex, coll, tile));
-				if (newTile !== null) {
-					/*console.log('oldTile', tile)
-					console.log('entities', entities[tile])
-					 console.log('newTile', newTile)*/
-				}
 				newRow.push(newTile);															
 				});
 	
 			newEntities.push(newRow);
 		});
-
-
-		let newPos = shuffleArray(getFloorsMapPosition(newGround));	 
-
-		return  state
-			.setIn(['Map','ground'], Immutable.fromJS(newGround))
-			.setIn(['Map','entities'], Immutable.fromJS(newEntities))
-			.setIn(['gameStats','player','col'], newPos[0].x)
-			.setIn(['gameStats','player','row'], newPos[0].y)
-			.setIn(['gameStats','started'],true);
+		
+		newEntities = Immutable.fromJS(newEntities);
+ 
+		let  ret = Immutable.fromJS  ({
+								ground: newGround,
+								entities: newEntities
+							});
+		return ret;
+			
 		// end of map inicializer	
-
-	};
-		//console.log(state);
 	
+	
+}
+
+const MegaInitialComposer = (level) => {
+		let newMap = MapInicializer(level);
+		let newPos = shuffleArray(getFloorsMapPosition(newMap.get('ground')));	
+		let newGameStats = GameInitialState.setIn(['player','col'], newPos[0].x)
+					 	   				   .setIn(['player','row'], newPos[0].y);
+		
+	
+	return  Immutable.fromJS ({ WeaponsHabilities: WeaponsHabilitiesInitialState,
+			mapConfiguration: Immutable.fromJS(MapConfig),
+			Map: newMap,
+			gameStats:newGameStats });
+}
+
+const PlayerInitialPos = (s) => {
+		let newPos = shuffleArray(getFloorsMapPosition(s.getIn(['Map','ground'])));	
+			return  s.setIn(['gameStats','player','col'], newPos[0].x)
+					 .setIn(['gameStats','player','row'], newPos[0].y);
+		
+};
+
+const minCol = (s) => 0;
+const maxCol = (s) => s.getIn(['mapConfiguration','width']) -1;
+const minRow = (s) => 0;
+const maxRow = (s) => s.getIn(['mapConfiguration','height']) -1;
+
+const clampToWorld = _.curry((state, col, row) => {
+				//console.log( col, row,clamp(minCol(state), maxCol(state), col),clamp(minRow(state), maxRow(state), row))
+				return [
+						clamp(minCol(state), maxCol(state), col),
+						clamp(minRow(state), maxRow(state), row)
+				];
+			});
+
+const MegaReducer = (
+	state = MegaInitialComposer(1),
+	action
+) => {
+	
+
 	const die = (s) => {
-			state = MegaInitialState;
+			state = MegaInitialComposer;
 			alert('MORREU')
 			};
 	
-	
+		
 	switch (action.type) {
 							
 		case 'MOVE':
-			
-			const minCol = (s) => 0;
- 			const maxCol = (s) => s.getIn(['mapConfiguration','width']) -1;
-			const minRow = (s) => 0;
-			const maxRow = (s) => s.getIn(['mapConfiguration','height']) -1;
-			
-			const clampToWorld = _.curry((state, col, row) => {
-					console.log( col, row,clamp(minCol(state), maxCol(state), col),clamp(minRow(state), maxRow(state), row))
-  					return [
-    						clamp(minCol(state), maxCol(state), col),
-							clamp(minRow(state), maxRow(state), row)
-					];
-				});
-			
-			
+					
 			
 			//console.log(state.toJS());
-			const col = player.get('col');
-			const row = player.get('row');
-			const playerDir = player.get('direction')
+			const col = state.getIn(['gameStats','player','col'])
+			const row = state.getIn(['gameStats','player','row'])
+			const playerDir = state.getIn(['gameStats','player','direction'])
 			
 			const dir = action.direction;
 			//define a direction for the player avatar
@@ -1021,11 +1090,12 @@ const MegaReducer = (
 					);
 			//console.log(nextCol,nextRow);
 			//check is not a wall...
-			let toGround = Ground.getIn([nextRow, nextCol]);
+			
+			let toGround = state.getIn(['Map','ground',nextRow, nextCol])
 				
 			if (toGround.get('type') === 'wall') {return  state;;} 
 			
-			const toGroundEntity = Entities.getIn([nextRow, nextCol])
+			const toGroundEntity = state.getIn(['Map','entities',nextRow, nextCol])
 
 			const esOccupado = !!toGroundEntity;
 			const type = esOccupado && toGroundEntity.get('type');
@@ -1035,28 +1105,38 @@ const MegaReducer = (
 			const moveBack = (s) => s.setIn(['gameStats','player','col'], col)
 								 .setIn(['gameStats','player','row'], row);				
 			const orient = (s) => s.setIn(['gameStats','player','direction'],newDir);	
-			const attackUp = (s) => s.setIn(['gameStats','attack'],gameStatsState.get('attack') + 10);
+			const attackUp = (s) => s.setIn(['gameStats','attack'],s.getIn(['gameStats','attack']) + 10);
 			const addAbilities = (s) => s.setIn(['WeaponsHabilities',type,'active'], true);
-			const collect = (s) => s.setIn(['gameStats','health'], gameStatsState.get('health')  +1 );		
+			const collect = (s) => s.setIn(['gameStats','health'], s.getIn(['gameStats','health'])  +1 );		
 		    const removeEntity = (s) => s.setIn(['Map','entities',nextRow,nextCol], null);
 			const ghostify = (s) =>	s.setIn(['gameStats','player','col'],nextCol)
 			 							 .setIn(['gameStats','player','row'],nextRow)
 			 							 .setIn(['Map','entities',nextRow,nextCol, 'type'], 'ghost');	
-			const hurt = (s) => s.setIn(['gameStats','health'], gameStatsState.get('health') -1 );
+			const hurt = (s) => s.setIn(['gameStats','health'], s.getIn(['gameStats','health'])  -1 );
 			const win = (s) => s.setIn(['gameStats','hasWon'], true);
 			const dieIfUnhealthy = (s) => (s.getIn(['gameStats','health']) <= 0) ? die(s) : s;						   
-						 
-			const whenEntity = _.curry((condition, update, s) => {
+						 		
+			
+			const goToNextLevel = (s) => { 
+				let newMap = MapInicializer(s.getIn(['gameStats','level']) +1)
+				let newPos = shuffleArray(getFloorsMapPosition(newMap.get('ground')));	
 				
+				return s.setIn(['gameStats','level'], s.getIn(['gameStats','level'])+1)
+					    .setIn(['gameStats','nextLevel'],s.getIn(['gameStats','nextLevel']) + 45)
+						.set('Map', newMap)
+						.setIn(['gameStats','player','col'], newPos[0].x)
+					 	.setIn(['gameStats','player','row'], newPos[0].y);
+				
+										 }
+					
+			const whenEntity = _.curry((condition, update, s) => {	
+				console.log('condition no whenEntity',  condition(s,toGroundEntity))
 				return (esOccupado &&  condition(s,toGroundEntity))? update(s) : s;
 				});
-			
-			if (state.getIn(['gameStats','hasWon']) === true ) {
-				alert('vtnc');
-			}
+				
 						
 			if (esOccupado) {
-				//console.log(state);
+				//console.log('esOccupado', state);
 				const canBlock = buildAbility('canBlock');
 				const canCollect = buildAbility('canCollect');
 				const canDie = buildAbility('canDie');
@@ -1077,7 +1157,7 @@ const MegaReducer = (
 						whenEntity(canPowerUp, attackUp),
 						whenEntity(canAddAbilities, _.flow(addAbilities, removeEntity)),
 						whenEntity(canCollect, _.flow(collect, removeEntity)),
-						whenEntity(canWin, win),
+						whenEntity(canWin, goToNextLevel),
 						dieIfUnhealthy
 						)(state);
 				
@@ -1170,9 +1250,6 @@ const ActiveWeapons = () => {
 				/>
 				<WeaponHabilitesContainer 
 					entity ="bow"
-				/>
-				<WeaponHabilitesContainer 
-					entity ="sword"
 				/>
 			</div>
 		</Col>
