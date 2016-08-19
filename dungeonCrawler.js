@@ -1110,8 +1110,7 @@ const MegaReducer = (
 				const colPlayer = state.getIn(['gameStats','player','col']);
 				const rowPlayer = state.getIn(['gameStats','player','row']);
 				return state.setIn(['gameStats','player','type'], 'personWalk');
-				
-			
+						
 			
 		case 'MOVE':
 
