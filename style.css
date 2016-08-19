@@ -12,11 +12,11 @@ p, ol, ul, dl, dt, dd, li {
 body {
   background: #000000;
   /* Old browsers */
-  background: -moz-radial-gradient(center, ellipse cover, #000000 0%, #cbdaed 48%, #000000 100%);
+  background: -moz-radial-gradient(center, ellipse cover, #000000 0%, #cbdaed 20%, #000000 100%);
   /* FF3.6-15 */
-  background: -webkit-radial-gradient(center, ellipse cover, #000000 0%, #cbdaed 48%, #000000 100%);
+  background: -webkit-radial-gradient(center, ellipse cover, #000000 0%, #cbdaed 20%, #000000 100%);
   /* Chrome10-25,Safari5.1-6 */
-  background: radial-gradient(ellipse at center, #000000 0%, #cbdaed 48%, #000000 100%);
+  background: radial-gradient(ellipse at center, #000000 0%, #cbdaed 20%, #000000 100%);
   /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */ }
 
 #mountNode div #Header {
@@ -470,3 +470,17 @@ body {
 
 .world {
   position: relative; }
+
+.modal-container {
+  position: relative; }
+
+.modal-container .modal, .modal-container .modal-backdrop {
+  position: absolute; }
+
+.modal-header {
+  background-color: cornflowerblue;
+  text-align: center; }
+
+.modal-body {
+  text-align: justify;
+  font-size: 18px; }

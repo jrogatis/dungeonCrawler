@@ -117,8 +117,8 @@ FontAwesome.propTypes = {
   }
 
 const MapConfig = {
-	  width: 60,
-	  height: 40,
+	  width: 80,
+	  height: 60,
 	  min_rooms: 20,
 	  max_rooms: 48,
 	  room: {
@@ -136,7 +136,8 @@ const GameLevels = {
 	1: {
 		enemies: {
 			//shit
-			type: ['DG'],	
+			type: ['DG'],
+			name: ['shit'],
 			qty_range: [10, 12],
 			level_range: [1, 2]
 		},
@@ -147,7 +148,8 @@ const GameLevels = {
 		}, 
 		//boots
 		abilities: {
-			type: ['PD'],	
+			type: ['PD'],
+			name: ['boots']
 		},
 		//anbulance
 		health: {
@@ -158,6 +160,7 @@ const GameLevels = {
 		 //santa claus 
 		boss: {
 			type:['DF'],
+			name: ['Santa Klaus'],
 			power: [45]
 		}
 		  
@@ -165,7 +168,8 @@ const GameLevels = {
 	2: {
 		enemies: {
 			//bananas
-			type: ['BW'],	
+			type: ['BW'],
+			name: ['bananas'],
 			qty_range: [10, 12],
 			level_range: [1, 2]
 		},
@@ -176,7 +180,8 @@ const GameLevels = {
 		}, 
 		//sumglasses
 		abilities: {
-			type: ['PA'],	
+			type: ['PA'],
+			name: ['sumglasses'],
 		},
 		//anbulance
 		health: {
@@ -187,6 +192,7 @@ const GameLevels = {
 		 //monkey 
 		boss: {
 			type:['BX'],
+			name: ['Monkey'],
 			power: [90]
 		}
 		  
@@ -194,7 +200,8 @@ const GameLevels = {
 	3: {
 		enemies: {
 			//gator
-			type: ['KB'],	
+			type: ['KB'],
+			name: ['gator'],
 			qty_range: [10, 12],
 			level_range: [1, 2]
 		},
@@ -205,7 +212,8 @@ const GameLevels = {
 		}, 
 		//speedboot
 		abilities: {
-			type: ['PC'],	
+			type: ['PC'],
+			name: ['speedboot'],
 		},
 		//anbulance
 		health: {
@@ -216,6 +224,7 @@ const GameLevels = {
 		 //monkey 
 		boss: {
 			type:['DE'],
+			name: ['Snow Man'],
 			power: [135]
 		}
 		  
@@ -223,7 +232,8 @@ const GameLevels = {
 	4: {
 		enemies: {
 			//rabbit
-			type: ['BD'],	
+			type: ['BD'],
+			name: ['rabit'],
 			qty_range: [10, 12],
 			level_range: [1, 2]
 		},
@@ -234,7 +244,8 @@ const GameLevels = {
 		}, 
 		//silver
 		abilities: {
-			type: ['PB'],	
+			type: ['PB'],
+			name: ['Silver Ware'],
 		},
 		//anbulance
 		health: {
@@ -245,6 +256,7 @@ const GameLevels = {
 		 //monkey 
 		boss: {
 			type:['BY'],
+			name: ['Elephant'],
 			power: [135]
 		}
 		  
@@ -296,19 +308,23 @@ const WeaponsHabilitiesInitialState = Immutable.fromJS({
   
 	});
 
-const GameInitialState = Immutable.fromJS({	
-	  hasWon:false,
-	  started: false,	
-	  deaths: 0,
-	  health: 4,
-	  attack: 0,
-	  level: 1,
-	  nextLevel: 45,
-	  player: {
+const GameInitialState = Immutable.fromJS({		
+	ShowWinModal:false,	
+	showDieModal: false,
+	ShowNextLevelModal: true,	
+	hasWon:false,
+	started: false,	
+	deaths: 0,
+	health: 4,
+	attack: 0,
+	level: 1,
+	nextLevel: 45,
+	player: {
 		 row: 0,
 		 col: 0,
-		direction: 'left' 
-	  }
+		 direction: 'left', 
+		 type: 'personWalk'
+	}
 					
 });
 
@@ -316,7 +332,7 @@ const GameInitialState = Immutable.fromJS({
 //defintions of size of col and row	
  const PX_PER_COL = 25;
  const PX_PER_ROW = 25;	
- const CAM_COLS   = 800 / PX_PER_COL;
+ const CAM_COLS   = 1120 / PX_PER_COL;
  const CAM_ROWS   = 600 / PX_PER_ROW;
 
 const xOffsets = Object.freeze({
@@ -899,14 +915,33 @@ const buildItems = (level) => {
     return items;
   };
 
-
-//need to check if the item is not close to a wall... because 
+//need to check if the item is not close to a GF type corridor... because 
 //can block a corridor	  
+
+const checkTilesNearCorridor = (map, x,y) => {
+	//console.log(map)
+	for (let i = -1; i < 2; i++) {
+		for  (let z = -1; z < 2; z++) {
+			let row = (x+i < 0)? x+i: 0;
+			let col = (y+z < 0)? y+z: 0;
+			row = (row < map.length)? row: row-1;
+			col = (col < map[row].length)? col: col-1;
+			
+			if( map[row][col] === 'GF') {
+				return true;
+			}
+			
+		} 
+		
+	}
+	return false;
+} 
+
 const  getFloorsPosition = (map) => {
 		var positions = [];
 		for ( var y in map ) {
 		  for ( var x = 0; x < map[y].length; x++ ) {
-			if ( map[y][x] == MapConfig.tileTypes.floor || !isNaN(map[y][x]) ) {
+			if ( map[y][x] === MapConfig.tileTypes.floor && !checkTilesNearCorridor(map,x,y) ) {
 				
 			  positions.push({y: y, x:x});          
 			}
@@ -962,11 +997,7 @@ const newBoard = (level) => {
 
 /*------------------------------------------------------------------------*/
 //REDUCERS area
-//active weapon reducer
 
-
-//called from Weapons
-//define if the weapon is active or no
 const activeWeaponHabilities = (state,action) => {
 					
 	switch (action.type) {
@@ -985,6 +1016,7 @@ const MapInicializer = (level) => {
 	
 	let Map = Immutable.fromJS(newBoard(level))
 	let newGround = []
+	//console.log('Map',JSON.stringify(Map));
 		Map.get('ground').map((row,rIndex)  => {		
 			let newRow = []
 			row.map((tile, coll)=>{
@@ -1014,6 +1046,8 @@ const MapInicializer = (level) => {
 								ground: newGround,
 								entities: newEntities
 							});
+	
+		//console.log('Map Final',JSON.stringify(ret));
 		return ret;
 			
 		// end of map inicializer	
@@ -1059,22 +1093,32 @@ const MegaReducer = (
 	action
 ) => {
 	
-
-	const die = (s) => {
-			state = MegaInitialComposer;
-			alert('MORREU')
-			};
-	
-		
+	//console.log(action.type);
 	switch (action.type) {
-							
-		case 'MOVE':
-					
 			
+		case 'DIE':
+			
+				return MegaInitialComposer(1);
+			
+		case 'NEXT_LEVEL_MODAL':
+			
+			return  state.setIn(['gameStats','ShowNextLevelModal'], action.text)
+			
+		case 'TO_END_MOVE':
+			//console.log(JSON.stringify(state));
+		
+				const colPlayer = state.getIn(['gameStats','player','col']);
+				const rowPlayer = state.getIn(['gameStats','player','row']);
+				return state.setIn(['gameStats','player','type'], 'personWalk');
+				
+			
+			
+		case 'MOVE':
+
 			//console.log(state.toJS());
-			const col = state.getIn(['gameStats','player','col'])
-			const row = state.getIn(['gameStats','player','row'])
-			const playerDir = state.getIn(['gameStats','player','direction'])
+			const col = state.getIn(['gameStats','player','col']);
+			const row = state.getIn(['gameStats','player','row']);
+			const playerDir = state.getIn(['gameStats','player','direction']);
 			
 			const dir = action.direction;
 			//define a direction for the player avatar
@@ -1101,36 +1145,43 @@ const MegaReducer = (
 			const type = esOccupado && toGroundEntity.get('type');
 			
 			const move = (s) => s.setIn(['gameStats','player','col'],nextCol)
-								 .setIn(['gameStats','player','row'],nextRow);
+								 .setIn(['gameStats','player','row'],nextRow)
+								 .setIn(['gameStats','player','type'],'person');
+			
 			const moveBack = (s) => s.setIn(['gameStats','player','col'], col)
-								 .setIn(['gameStats','player','row'], row);				
+								 .setIn(['gameStats','player','row'], row);	
+			
 			const orient = (s) => s.setIn(['gameStats','player','direction'],newDir);	
 			const attackUp = (s) => s.setIn(['gameStats','attack'],s.getIn(['gameStats','attack']) + 10);
 			const addAbilities = (s) => s.setIn(['WeaponsHabilities',type,'active'], true);
 			const collect = (s) => s.setIn(['gameStats','health'], s.getIn(['gameStats','health'])  +1 );		
 		    const removeEntity = (s) => s.setIn(['Map','entities',nextRow,nextCol], null);
-			const ghostify = (s) =>	s.setIn(['gameStats','player','col'],nextCol)
-			 							 .setIn(['gameStats','player','row'],nextRow)
-			 							 .setIn(['Map','entities',nextRow,nextCol, 'type'], 'ghost');	
 			const hurt = (s) => s.setIn(['gameStats','health'], s.getIn(['gameStats','health'])  -1 );
-			const win = (s) => s.setIn(['gameStats','hasWon'], true);
 			const dieIfUnhealthy = (s) => (s.getIn(['gameStats','health']) <= 0) ? die(s) : s;						   
-						 		
+			const die = (s) => s.setIn(['gameStats','ShowDieModal'], true); 		 		
 			
 			const goToNextLevel = (s) => { 
-				let newMap = MapInicializer(s.getIn(['gameStats','level']) +1)
-				let newPos = shuffleArray(getFloorsMapPosition(newMap.get('ground')));	
 				
-				return s.setIn(['gameStats','level'], s.getIn(['gameStats','level'])+1)
-					    .setIn(['gameStats','nextLevel'],s.getIn(['gameStats','nextLevel']) + 45)
-						.set('Map', newMap)
-						.setIn(['gameStats','player','col'], newPos[0].x)
-					 	.setIn(['gameStats','player','row'], newPos[0].y);
+				if (s.getIn(['gameStats','level']) === 4 ) {
+					
+					return s.setIn(['gameStats','ShowWinModal'], true);
+				} else {
 				
-										 }
+					let newMap = MapInicializer(s.getIn(['gameStats','level']) +1)
+					let newPos = shuffleArray(getFloorsMapPosition(newMap.get('ground')));	
+
+					return s.setIn(['gameStats','level'], s.getIn(['gameStats','level'])+1)
+							.setIn(['gameStats','nextLevel'],s.getIn(['gameStats','nextLevel']) + 45)
+							.set('Map', newMap)
+							.setIn(['gameStats','player','col'], newPos[0].x)
+							.setIn(['gameStats','player','row'], newPos[0].y)
+							.setIn(['gameStats','ShowNextLevelModal'], true);
+				};
+				
+			};
 					
 			const whenEntity = _.curry((condition, update, s) => {	
-				console.log('condition no whenEntity',  condition(s,toGroundEntity))
+				//console.log('condition no whenEntity',  condition(s,toGroundEntity))
 				return (esOccupado &&  condition(s,toGroundEntity))? update(s) : s;
 				});
 				
@@ -1190,7 +1241,21 @@ const toMove=(direction) => {
 		direction
 	}
 };
-
+const toEndMove = () => {
+	//console.log('toEndMove')
+	return {
+	type: 'TO_END_MOVE'
+	}
+	
+};
+const nextLevelModalShow =(show) => {
+	
+	return {
+		type: 'NEXT_LEVEL_MODAL',
+		text: show	
+	}
+};
+const die = ()=> { return {type: 'DIE'};}
 
 /*------------------------------------------------------------------------*/
 
@@ -1199,12 +1264,10 @@ const mapStateToWeaponsHabilitiesProps=(
 	state,
 	ownProps
 ) => {
-		//take care !!! im using immutableJS!!!
 		let WeaponsHabilities = state.get('WeaponsHabilities');
 		let WeaponsState = WeaponsHabilities.get(ownProps.entity);
 		let WeaponState = WeaponsState.get('active')
 				
-		
 	return {
 		entity: ownProps.entity,
 		active: WeaponState
@@ -1229,7 +1292,6 @@ const WeaponHabilities = (
 const WeaponHabilitesContainer = connect(
 	mapStateToWeaponsHabilitiesProps
 )(WeaponHabilities);
-
 
 const ActiveWeapons = () => {
 	
@@ -1437,15 +1499,6 @@ const CurrentNextLevelContainer = connect(
 /*------------------------------------------------------------------------*/
 //player area
 
-const groundToType = Object.freeze({
-  //doorway: 'dancer',
-//  road: 'bike',
-//  roadline: 'bike',
-//  sidewalk: 'personWalk',
-//  sky: 'chopper',
-//  water: 'speedboat',
-floor: 'personWalk'
-});
 
 const keyCodes =Object.freeze({
   37: 'left',
@@ -1463,9 +1516,7 @@ const Player = (
 	const { col, row, direction, type, Ground } = props;
 	//console.log('personDirection', direction);
   	const isMoveKey= (key) => {
-		//console.log('isMoveKey key',key)
-		//console.log('arrowKeys.has(key) ',  arrowKeys.has(key))
-		//console.log('_.values(keyCodes)', _.values(keyCodes))
+	 
 		return arrowKeys.has(key);
   	};
 
@@ -1474,12 +1525,12 @@ const Player = (
 		props.onMove(key);
   	};
 	
-	// if is the inicial set then put the player at right place...
-	if (col === 0 && row === 0 ) {
-		let newPos = shuffleArray(getFloorsMapPosition(Ground));	 
-		 props.SetInitialPosition(newPos[0].x,newPos[0].y);
-	};	    
-	//const personDirection =  'flipped--x:'+  (direction === 'right');
+	const onArrowKeyUp = (key, e) => {
+		//console.log('onArrowKeyUp');
+	 	e.preventDefault();
+		props.OnEndMove();
+  	};
+  
 	const personDirection = classNames({
         'flipped--x': direction === 'right'
       });
@@ -1491,12 +1542,13 @@ const Player = (
       className: personDirection 
 	}
 
-    	
+
     return (
 				
 		<KeyboardContainer
 	  		keyFilter={isMoveKey}
-			onKeyDown={onArrowKeyDown}>
+			onKeyDown={onArrowKeyDown}
+			onKeyUp={onArrowKeyUp}>
         	<Tile {...attrs} />
 		</KeyboardContainer>
 		
@@ -1517,7 +1569,7 @@ const  mapStateToPlayerProps  =(
 		const direction = player.get('direction');
 		const groundAt = Ground.getIn([row, col, 'type']);
 
-		const type = groundToType[groundAt] || 'person';
+		const type = player.get('type');
 	
 		return {
 			col,
@@ -1533,11 +1585,13 @@ const mapDispatchToPlayerProps = (
 ) =>{
 	  
   return {
-		onMove: (direction) => {			
-		  dispatch(toMove(direction));		
+			onMove: (direction) => {			
+						dispatch(toMove(direction)) 
+			},
+			OnEndMove: () => {
+					dispatch(toEndMove())
+			}	  
 		}		  	
-  	};
-
 };
 
 const PlayerContainer = connect(
@@ -1612,7 +1666,7 @@ class Keyboard extends Component  {
 	 onKeyEvent(e)  {	
 		 const handler = this.props[eventToProp[e.type]];  	
     	if (this.matchesAllFilters(e)) {
-			 //console.log('handler no onKeyEvent com e',e.type,  handler);
+			 //console.log('handler no onKeyEvent com e.type ',e.type,  handler);
       		handler(this.getEventKey(e), e);
 			
     	}
@@ -1644,15 +1698,13 @@ const mapStateToKeyboardProps = (
 	ownProps
 ) =>{
 	const returnTrue = () => true;
-	const noop = () => {};
-	//console.log('Map', ownProps);
 	return {
 		...state,
 		keyFilter: ownProps.keyFilter,
 		activeElementFilter: returnTrue,
 		filter: returnTrue,
 		onKeyDown: ownProps.onKeyDown,
-		onKeyUp: noop
+		onKeyUp:  ownProps.onKeyUp
 	};		
 
 };
@@ -1885,24 +1937,179 @@ const Camera =(
 	const {numCols, numRows} = props;
 	const style = gridCoordsToDimStyle(numCols, numRows);
     return (
-      <Col  componentClass={Well}  mdOffset={3} className="camera" style={style}>
-        {props.children}
+      <Col  componentClass={Well}  
+			mdOffset={2} 
+			className="camera"
+			style={style}>
+				{props.children}
       </Col>
 		);
-}
+};
 	
 /*------------------------------------------------------------------------*/
+const NextLevelModal = (
+	props
+) => {
 
+	
+	const CloseHandler = () => {
+		
+		return props.onClickHandler(false)
+	
+	};
+	
+	return (
+
+		<Modal show={props.showModal} onHide={CloseHandler}>
+			<Modal.Header>
+				<Modal.Title>Welcome to level <strong> {props.level} </strong> !!!</Modal.Title>
+			</Modal.Header>
+			<Modal.Body>
+				<p> Ok, on this level you need to find the <strong> {props.ability} </strong> to 
+				collect the <strong>{props.enemies}</strong> and use the <strong>{props.weapon}</strong>  to kill the evil <strong>{props.boss}</strong>!!! </p>
+			</Modal.Body>
+			<Modal.Footer>
+				<Button onClick={CloseHandler}>Start</Button>
+			</Modal.Footer>
+		</Modal>		
+	)
+};
+
+const MapDispatchToNextLevelModal = (
+			dispatch
+			) => {	 
+			return {	
+					onClickHandler: (show) => { 
+						dispatch(nextLevelModalShow(show))
+					}
+			}
+
+};	
+			
+			
+const MapStateToNextLevelModal = (
+			state
+			) => {
+			//console.log(state)
+			let level = state.getIn(['gameStats','level']);
+			//console.log(level)
+			//console.log(GameLevels[level]);
+			return {
+				level: level,
+				weapon: GameLevels[level].weapons.name,
+				ability: GameLevels[level].abilities.name,
+				boss: GameLevels[level].boss.name,
+				enemies:GameLevels[level].enemies.name,
+				showModal: state.getIn(['gameStats','ShowNextLevelModal'])
+			};	
+};
+
+
+const NextLevelModalContainer = connect(
+	MapStateToNextLevelModal,
+	MapDispatchToNextLevelModal)
+(NextLevelModal);
+
+
+const DieModal = (
+	props	
+) => {
+
+	
+	const CloseHandler = () => {
+		
+		return props.onClickHandler(false)
+	
+	};
+	
+	return (
+
+		<Modal show={props.showModal} onHide={CloseHandler}>
+			<Modal.Header>
+				<Modal.Title> ALERT !!!</Modal.Title>
+			</Modal.Header>
+			<Modal.Body>
+				<p> Sory... But you die.... Try Again !</p>
+			</Modal.Body>
+			<Modal.Footer>
+				<Button onClick={CloseHandler}>Restart</Button>
+			</Modal.Footer>
+		</Modal>		
+	)
+};
+
+const MapDispachToDieModal = (
+	dispatch
+) => {
+	return {	
+		onClickHandler: () => { 
+			dispatch(die())
+		}
+	};
+};
+
+const MapStateToDieModal = (
+	state
+)=> {
+	return {
+			showModal: state.getIn(['gameStats','ShowDieModal'])
+	}
+};	
+	
+const DieModalContainer = connect(
+	MapStateToDieModal,
+	MapDispachToDieModal)
+(DieModal);
+
+
+const WinModal = (props) => {
+	const CloseHandler = () => {
+		
+		return props.onClickHandler(false)
+	
+	};
+	
+	return (
+
+		<Modal show={props.showModal} onHide={CloseHandler}>
+			<Modal.Header>
+				<Modal.Title> CONGRATULATIONS !!!!</Modal.Title>
+			</Modal.Header>
+			<Modal.Body>
+				<p>YOU WIN !!! You finaly kill the Snow Man!!!</p>
+			</Modal.Body>
+			<Modal.Footer>
+				<Button onClick={CloseHandler}>Restart</Button>
+			</Modal.Footer>
+		</Modal>		
+	)
+};
+
+const MapStateToWinModal = (
+	state
+)=> {
+	return {
+			showModal: state.getIn(['gameStats','ShowWinModal'])
+	}
+};	
+
+const WinModalContainer = connect(
+	MapStateToWinModal,
+	MapDispachToDieModal)
+(WinModal);
+
+			
 const Header = () => {
 
 	return (
 		<Col 
-			md={12}
+			md={8}
+			 mdOffset={2}
 			componentClass={Well} 
 			bsSize="large"
 			id="Header"> 
 				<h1> React Roguelike </h1>
-				<h3> Kill the KING!!! </h3>
+				<h3> Kill the Snow Man!!! </h3>
 			<Col md={12}>
 				<form> 
 					<FormGroup 
@@ -1926,7 +2133,8 @@ const Footer = () =>  {
 	
 		return (
 			<Col 
-				md={12}
+				md={8}
+			 mdOffset={2}
 				componentClass={Well} 
 				bsSize="large"
 				id="Footer"> 
@@ -1950,8 +2158,12 @@ const Controler = () => {
 					<Camera numCols={CAM_COLS} numRows={CAM_ROWS}>
 					<WordContainer/>
 					</Camera >	
-					<Footer/>	
+					<Footer/>
+					<NextLevelModalContainer/>	
+					<DieModalContainer/>
+					<WinModalContainer/>	
 				</Grid>	
+				
 			</Provider>	
 			
 		);
